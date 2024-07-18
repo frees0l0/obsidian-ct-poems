@@ -1,11 +1,11 @@
 import { App, Editor, MarkdownView, FuzzySuggestModal, FuzzyMatch, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 
 interface PluginSettings {
-	showTonesInReading: boolean;
+  showTonesInReading: boolean;
 }
 
 const DEFAULT_SETTINGS: PluginSettings = {
-	showTonesInReading: false,
+  showTonesInReading: false,
 }
 
 interface Tune {
@@ -21,63 +21,63 @@ const ALL_TUNES = [
 ];
 
 export default class CiPoemsPlugin extends Plugin {
-	settings: PluginSettings;
+  settings: PluginSettings;
 
-	async onload() {
-		await this.loadSettings();
-		
-		// Add command for inserting a new ci poem
-		this.addCommand({
-			id: 'insert-ci-poem',
-			name: 'Insert Ci Poem',
-			checkCallback: (checking: boolean) => {
-				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					if (!checking) {
-						new TuneSearchModal(this.app).open();
-					}
+  async onload() {
+    await this.loadSettings();
+    
+    // Add command for inserting a new ci poem
+    this.addCommand({
+      id: 'insert-ci-poem',
+      name: 'Insert Ci Poem',
+      checkCallback: (checking: boolean) => {
+        const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
+        if (markdownView) {
+          if (!checking) {
+            new TuneSearchModal(this.app).open();
+          }
 
-					return true;
-				}
-			}
-		});
+          return true;
+        }
+      }
+    });
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new CiPoemsSettingTab(this.app, this));
+    // This adds a settings tab so the user can configure various aspects of the plugin
+    this.addSettingTab(new CiPoemsSettingTab(this.app, this));
 
-		// this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-		// 	console.log('click', evt);
-		// });
+    // this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
+    // 	console.log('click', evt);
+    // });
 
-		// this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
-	}
+    // this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
+  }
 
-	onunload() {
+  onunload() {
 
-	}
+  }
 
-	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-	}
+  async loadSettings() {
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+  }
 
-	async saveSettings() {
-		await this.saveData(this.settings);
-	}
+  async saveSettings() {
+    await this.saveData(this.settings);
+  }
 }
 
 class TuneSearchModal extends FuzzySuggestModal<Tune> {
-	getItems(): Tune[] {
-		return ALL_TUNES;
+  getItems(): Tune[] {
+    return ALL_TUNES;
   }
-	
+  
   getItemText(tune: Tune): string {
-		return tune.name;
+    return tune.name;
   }
-	
-	renderSuggestion(tune: FuzzyMatch<Tune>, el: HTMLElement) {
-		el.createEl("div", { text: tune.item.name });
-		el.createEl("small", { text: tune.item.tones.substring(0, 20) + '......' });
-	}
+  
+  renderSuggestion(tune: FuzzyMatch<Tune>, el: HTMLElement) {
+    el.createEl("div", { text: tune.item.name });
+    el.createEl("small", { text: tune.item.tones.substring(0, 20) + '......' });
+  }
 
   onChooseItem(tune: Tune, evt: MouseEvent | KeyboardEvent) {
     new Notice(`Selected ${tune.name}`);
@@ -86,26 +86,26 @@ class TuneSearchModal extends FuzzySuggestModal<Tune> {
 
 
 class CiPoemsSettingTab extends PluginSettingTab {
-	plugin: CiPoemsPlugin;
+  plugin: CiPoemsPlugin;
 
-	constructor(app: App, plugin: CiPoemsPlugin) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
+  constructor(app: App, plugin: CiPoemsPlugin) {
+    super(app, plugin);
+    this.plugin = plugin;
+  }
 
-	display(): void {
-		const {containerEl} = this;
+  display(): void {
+    const {containerEl} = this;
 
-		containerEl.empty();
+    containerEl.empty();
 
-		new Setting(containerEl)
-			.setName('Show tones in reading mode')
-			.setDesc('Show tones for words of the ci poem in reading mode')
-			.addToggle(component => component
-				.setValue(this.plugin.settings.showTonesInReading)
-				.onChange(async (value) => {
-					this.plugin.settings.showTonesInReading = value;
-					await this.plugin.saveSettings();
-				}));
-	}
+    new Setting(containerEl)
+      .setName('Show tones in reading mode')
+      .setDesc('Show tones for words of the ci poem in reading mode')
+      .addToggle(component => component
+        .setValue(this.plugin.settings.showTonesInReading)
+        .onChange(async (value) => {
+          this.plugin.settings.showTonesInReading = value;
+          await this.plugin.saveSettings();
+        }));
+  }
 }
