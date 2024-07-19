@@ -1,8 +1,16 @@
-import { FuzzySuggestModal, FuzzyMatch, Notice } from 'obsidian';
+import { App, Editor, FuzzySuggestModal, FuzzyMatch } from 'obsidian';
 import { Tune } from 'types';
-import { ALL_TUNES } from 'main';
+import { ALL_TUNES } from 'tunes';
+import { getCodeBlock } from 'ciPoem';
 
 export class TuneSearchModal extends FuzzySuggestModal<Tune> {
+  private editor: Editor;
+
+  constructor(app: App, editor: Editor) {
+    super(app);
+    this.editor = editor;
+  }
+  
   getItems(): Tune[] {
     return ALL_TUNES;
   }
@@ -17,6 +25,15 @@ export class TuneSearchModal extends FuzzySuggestModal<Tune> {
   }
 
   onChooseItem(tune: Tune, evt: MouseEvent | KeyboardEvent) {
-    new Notice(`Selected ${tune.name}`);
+    const codeBlock = getCodeBlock(tune);
+    const cursor = this.editor.getCursor();
+
+    this.editor.transaction({
+      changes: [{ from: cursor, text: codeBlock }],
+    });
+    this.editor.setCursor({
+      line: cursor.line + codeBlock.split('\n').length - 3,
+      ch: 0,
+    });
   }
 }

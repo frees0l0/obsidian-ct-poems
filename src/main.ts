@@ -1,14 +1,7 @@
-import { MarkdownView, Plugin } from 'obsidian';
+import { Plugin } from 'obsidian';
 import { PluginSettings, DEFAULT_SETTINGS } from 'types';
 import { CiPoemsSettingTab } from 'CiPoemsSettingTab';
 import { TuneSearchModal } from 'TuneSearchModal';
-
-export const ALL_TUNES = [
-  {
-    name: "菩萨蛮",
-    tones: "中平中仄平平仄，中平中仄平平仄。中仄仄平平，中平中仄平。\n\n中平平仄仄，中仄中平仄。中仄仄平平，中平中仄平。",
-  }
-];
 
 export default class CiPoemsPlugin extends Plugin {
   settings: PluginSettings;
@@ -20,15 +13,8 @@ export default class CiPoemsPlugin extends Plugin {
     this.addCommand({
       id: 'insert-ci-poem',
       name: 'Insert Ci Poem',
-      checkCallback: (checking: boolean) => {
-        const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-        if (markdownView) {
-          if (!checking) {
-            new TuneSearchModal(this.app).open();
-          }
-
-          return true;
-        }
+      editorCallback: (editor, view) => {
+        new TuneSearchModal(this.app, editor).open();
       }
     });
 
