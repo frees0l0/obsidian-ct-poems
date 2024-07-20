@@ -2,6 +2,7 @@ import { Plugin } from 'obsidian';
 import { PluginSettings, DEFAULT_SETTINGS } from 'types';
 import { CiPoemsSettingTab } from 'CiPoemsSettingTab';
 import { TuneSearchModal } from 'TuneSearchModal';
+import { processCodeBlock } from 'ciPoem';
 
 export default class CiPoemsPlugin extends Plugin {
   settings: PluginSettings;
@@ -17,6 +18,9 @@ export default class CiPoemsPlugin extends Plugin {
         new TuneSearchModal(this.app, editor).open();
       }
     });
+
+    // Add ci-poem code block processor
+    this.registerMarkdownCodeBlockProcessor('ci-poem', processCodeBlock);
 
     // This adds a settings tab so the user can configure various aspects of the plugin
     this.addSettingTab(new CiPoemsSettingTab(this.app, this));

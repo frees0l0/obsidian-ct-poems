@@ -1,6 +1,6 @@
 {
 	"id": "obsidian-ci-poems",
-	"name": "Ci Poems Plugin",
+	"name": "Ci Poems",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
 	"description": "Plugin for the creation of Chinese ci poems.",
