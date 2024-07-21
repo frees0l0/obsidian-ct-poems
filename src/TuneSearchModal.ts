@@ -1,6 +1,6 @@
 import { App, Editor, FuzzySuggestModal, FuzzyMatch } from 'obsidian';
 import { Tune } from 'types';
-import { ALL_TUNES } from 'tunes';
+import { getAllTunes } from 'tunes';
 import { getCodeBlock } from 'ciPoem';
 
 export class TuneSearchModal extends FuzzySuggestModal<Tune> {
@@ -12,7 +12,7 @@ export class TuneSearchModal extends FuzzySuggestModal<Tune> {
   }
   
   getItems(): Tune[] {
-    return ALL_TUNES;
+    return getAllTunes();
   }
 
   getItemText(tune: Tune): string {

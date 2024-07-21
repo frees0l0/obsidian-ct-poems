@@ -6,7 +6,11 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   showTonesInReading: false,
 };
 
-export interface Tune {
+export type Tune = {
   name: string;
   tones: string;
-}
+};
+
+export type ComposedTune = {
+  composedTones: string;
+} & Tune;
