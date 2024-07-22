@@ -1,8 +1,8 @@
 import { MarkdownPostProcessorContext } from "obsidian";
-import { POEM_CODE_TAG, POEM_KIND_TUNE, PoemHead, Tune } from "types";
+import { POEM_CODE_TAG, POEM_KIND_S4, POEM_KIND_S8, POEM_KIND_TUNE, PoemHead, Tune } from "types";
 
 // 格式："词牌：菩萨蛮" or "词牌：菩萨蛮·秋思"
-const PATTERN_POEM_HEAD = /^(?<kind>\p{L}+)[:：]\s*(?<title>\p{L}+(?:[.·]\p{L}+)?)?$/u;
+const PATTERN_POEM_HEAD = /^(?<kind>\p{L}+)[:：]\s*(?<title>\p{L}+(?:[.·]\p{L}+)?)$/u;
 const PATTERN_DOT_SEP = /\.|·/;
 
 export function getCodeBlock(tune: Tune): string {
@@ -44,12 +44,18 @@ export function extractHead(row: string): PoemHead | null {
     }
 
     const kind = match.groups.kind;
+    if (kind != POEM_KIND_TUNE && kind != POEM_KIND_S4 && kind != POEM_KIND_S8) {
+        return null;
+    }
+    
     let title = match.groups.title;
     let subtitle = null;
     if (kind == POEM_KIND_TUNE) {
         const parts = title.split(PATTERN_DOT_SEP);
-        title = parts[0];
-        subtitle = parts.length > 1 ? parts[1] : null;
+        if (parts.length > 1) {
+            title = parts[0];
+            subtitle = parts[1];
+        }
     }
     return {
         kind: kind,
