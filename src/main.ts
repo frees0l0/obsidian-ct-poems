@@ -1,8 +1,8 @@
 import { Plugin } from 'obsidian';
-import { PluginSettings, DEFAULT_SETTINGS } from 'types';
+import { PluginSettings, DEFAULT_SETTINGS, POEM_CODE_TAG } from 'types';
 import { PoemsSettingTab } from 'PoemsSettingTab';
 import { TuneSearchModal } from 'TuneSearchModal';
-import { viewCodeBlock } from 'poemUtil';
+import { renderPoem } from 'poemUtil';
 import { TuneCompositionHint } from 'TuneCompositionHint';
 
 export default class CTPoemsPlugin extends Plugin {
@@ -21,7 +21,7 @@ export default class CTPoemsPlugin extends Plugin {
     });
 
     // Add ci-poem code block processor
-    this.registerMarkdownCodeBlockProcessor('ci-poem', viewCodeBlock);
+    this.registerMarkdownCodeBlockProcessor(POEM_CODE_TAG, renderPoem);
 
     // Add hint for the composed tune
     this.registerEditorSuggest(new TuneCompositionHint(this.app));

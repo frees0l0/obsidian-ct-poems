@@ -1,4 +1,4 @@
-.ci-poem {
+.poem {
     margin: 16px 0;
     padding: 12px 16px;
     border-radius:  4px;
@@ -6,12 +6,12 @@
     background-color: rgba(8, 185, 78, 0.1);
 }
 
-.ci-poem-title {
-    padding: 0;
+.poem-title {
+    padding: 0 0 2px 0;
     font-size: 120%;
     font-weight: bold;
 }
 
-.ci-poem-line {
-    padding: 16px 0 0 0;
+.poem-line {
+    padding: 14px 0 0 0;
 }

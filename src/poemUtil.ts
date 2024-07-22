@@ -1,14 +1,15 @@
 import { MarkdownPostProcessorContext } from "obsidian";
-import { Tune } from "types";
+import { POEM_CODE_TAG, POEM_KIND_TUNE, PoemHead, Tune } from "types";
 
-const CI_POEM_CODE_TAG = 'ci-poem'
-const CI_POEM_TUNE_TAG = '词牌:'
+// 格式："词牌：菩萨蛮" or "词牌：菩萨蛮·秋思"
+const PATTERN_POEM_HEAD = /^(?<kind>\p{L}+)[:：]\s*(?<title>\p{L}+(?:[.·]\p{L}+)?)?$/u;
+const PATTERN_DOT_SEP = /\.|·/;
 
 export function getCodeBlock(tune: Tune): string {
     const block = 
-`\`\`\`${CI_POEM_CODE_TAG}
+`\`\`\`${POEM_CODE_TAG}
 
-${CI_POEM_TUNE_TAG} ${tune.name}
+${POEM_KIND_TUNE} ${tune.name}
 
 
 
@@ -16,31 +17,45 @@ ${CI_POEM_TUNE_TAG} ${tune.name}
     return block;
 }
 
-export function viewCodeBlock(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) : void {
+export function renderPoem(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) : void {
     const rows = splitLines(source);
 
-    const div = el.createDiv({ cls: "ci-poem" });
+    const div = el.createDiv({ cls: "poem" });
     for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
-        if (isTuneHead(row)) {
-            const title = extractTuneNameAndTitle(row);
-            div.createDiv({ text: title, cls: "ci-poem-title" });
+        const head = extractHead(row);
+        if (head) {
+            const title = head.subtitle ? `${head.title}·${head.subtitle}` : head.title;
+            div.createDiv({ text: title, cls: "poem-title" });
         } else {
-            div.createDiv({ text: row, cls: "ci-poem-line" });
+            div.createDiv({ text: row, cls: "poem-line" });
         }
     }
 }
 
-export function extractTuneNameAndTitle(row: string) {
-    return row.substring(CI_POEM_TUNE_TAG.length).trim().replace(/\./, "·");
+export function isHead(row: string): boolean {
+    return row.trim().match(PATTERN_POEM_HEAD) != null;
 }
 
-export function extractTuneName(row: string): string {
-    return row.substring(CI_POEM_TUNE_TAG.length).trim().split(/\.|·/)[0];
-}
+export function extractHead(row: string): PoemHead | null {
+    const match = row.trim().match(PATTERN_POEM_HEAD);
+    if (!match || !match.groups) {
+        return null;
+    }
 
-export function isTuneHead(row: string): boolean {
-    return row.trim().startsWith(CI_POEM_TUNE_TAG);
+    const kind = match.groups.kind;
+    let title = match.groups.title;
+    let subtitle = null;
+    if (kind == POEM_KIND_TUNE) {
+        const parts = title.split(PATTERN_DOT_SEP);
+        title = parts[0];
+        subtitle = parts.length > 1 ? parts[1] : null;
+    }
+    return {
+        kind: kind,
+        title: title,
+        subtitle: subtitle,
+    };
 }
 
 export function isCodeBlockBoundary(row: string, isStart: boolean | undefined = undefined) {
@@ -49,7 +64,7 @@ export function isCodeBlockBoundary(row: string, isStart: boolean | undefined = 
     if (isStart == undefined) {
         return row.startsWith('```');
     } else if (isStart) {
-        return row.startsWith('```' + CI_POEM_CODE_TAG);
+        return row.startsWith('```' + POEM_CODE_TAG);
     } else {
         return row == '```';
     }

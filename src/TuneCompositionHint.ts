@@ -1,7 +1,7 @@
 import { App, Editor, EditorPosition, EditorSuggest, EditorSuggestContext, EditorSuggestTriggerInfo, TFile } from 'obsidian';
-import { ComposedTune } from 'types';
+import { POEM_KIND_TUNE, ComposedTune } from 'types';
 import { getTune } from 'tunes';
-import { isTuneHead, isCodeBlockBoundary, splitLines, extractTuneName } from 'poemUtil';
+import { extractHead, isCodeBlockBoundary, splitLines } from 'poemUtil';
 
 export class TuneCompositionHint extends EditorSuggest<ComposedTune> {
     constructor(app: App) {
@@ -38,7 +38,12 @@ export class TuneCompositionHint extends EditorSuggest<ComposedTune> {
 
     async getSuggestions(context: EditorSuggestContext): Promise<ComposedTune[]> {
         const lines = splitLines(context.query);
-        const tuneName = extractTuneName(lines[0]);
+        const head = extractHead(lines[0]);
+        if (!head) {
+            return [];
+        }
+
+        const tuneName = head.title;
         const tune = getTune(tuneName);
         const composedTones = lines.slice(1).join('\n');
         return [{
@@ -49,11 +54,11 @@ export class TuneCompositionHint extends EditorSuggest<ComposedTune> {
     }
 
     renderSuggestion(tune: ComposedTune, el: HTMLElement) {
-        el.createDiv({ text: tune.name, cls: "ci-poem-title" });
+        el.createDiv({ text: tune.name, cls: "poem-title" });
 
         const lines = splitLines(tune.tones);
         for (let i = 0; i < lines.length; i++) {
-            el.createDiv({ text: lines[i], cls: "ci-poem-line" });
+            el.createDiv({ text: lines[i], cls: "poem-line" });
         }
     }
 
@@ -66,7 +71,8 @@ export class TuneCompositionHint extends EditorSuggest<ComposedTune> {
         let codeBlockFound = false;
         while (curLineNo >= 0) {
             const curLine = editor.getLine(curLineNo);
-            if (isTuneHead(curLine)) {
+            const head = extractHead(curLine);
+            if (head && head.kind == POEM_KIND_TUNE) {
                 start = curLineNo;
             }
             else if (isCodeBlockBoundary(curLine, true)) {
