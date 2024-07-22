@@ -1,10 +1,10 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
-import CiPoemsPlugin from 'main';
+import CTPoemsPlugin from 'main';
 
-export class CiPoemsSettingTab extends PluginSettingTab {
-  plugin: CiPoemsPlugin;
+export class PoemsSettingTab extends PluginSettingTab {
+  plugin: CTPoemsPlugin;
 
-  constructor(app: App, plugin: CiPoemsPlugin) {
+  constructor(app: App, plugin: CTPoemsPlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }
@@ -16,7 +16,7 @@ export class CiPoemsSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Show tones in reading mode')
-      .setDesc('Show tones for words of the ci poem in reading mode')
+      .setDesc('Show tones for words of the poem in reading mode')
       .addToggle(component => component
         .setValue(this.plugin.settings.showTonesInReading)
         .onChange(async (value) => {

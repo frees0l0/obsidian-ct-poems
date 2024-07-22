@@ -1,11 +1,11 @@
 import { Plugin } from 'obsidian';
 import { PluginSettings, DEFAULT_SETTINGS } from 'types';
-import { CiPoemsSettingTab } from 'CiPoemsSettingTab';
+import { PoemsSettingTab } from 'PoemsSettingTab';
 import { TuneSearchModal } from 'TuneSearchModal';
-import { viewCodeBlock } from 'ciPoem';
-import { ComposedTuneHint } from 'ComposedTuneHint';
+import { viewCodeBlock } from 'poemUtil';
+import { TuneCompositionHint } from 'TuneCompositionHint';
 
-export default class CiPoemsPlugin extends Plugin {
+export default class CTPoemsPlugin extends Plugin {
   settings: PluginSettings;
 
   async onload() {
@@ -24,10 +24,10 @@ export default class CiPoemsPlugin extends Plugin {
     this.registerMarkdownCodeBlockProcessor('ci-poem', viewCodeBlock);
 
     // Add hint for the composed tune
-    this.registerEditorSuggest(new ComposedTuneHint(this.app));
+    this.registerEditorSuggest(new TuneCompositionHint(this.app));
 
     // This adds a settings tab so the user can configure various aspects of the plugin
-    this.addSettingTab(new CiPoemsSettingTab(this.app, this));
+    this.addSettingTab(new PoemsSettingTab(this.app, this));
   }
 
   onunload() {

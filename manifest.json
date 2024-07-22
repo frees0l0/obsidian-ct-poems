@@ -1,9 +1,9 @@
 {
-	"id": "obsidian-ci-poems",
-	"name": "Ci Poems",
+	"id": "obsidian-ct-poems",
+	"name": "Chinese Traditional Poems",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Plugin for the composition of Chinese ci poems.",
+	"description": "Plugin for the composition of Chinese traditional poems.",
 	"author": "frees0l0",
 	"authorUrl": "https://github.com/frees0l0",
 	"isDesktopOnly": false

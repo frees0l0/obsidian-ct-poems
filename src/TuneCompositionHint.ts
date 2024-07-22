@@ -1,9 +1,9 @@
-import { isHead, isCodeBlockBoundary, splitLines, extractTuneName } from 'ciPoem';
 import { App, Editor, EditorPosition, EditorSuggest, EditorSuggestContext, EditorSuggestTriggerInfo, TFile } from 'obsidian';
-import { getTune } from 'tunes';
 import { ComposedTune } from 'types';
+import { getTune } from 'tunes';
+import { isTuneHead, isCodeBlockBoundary, splitLines, extractTuneName } from 'poemUtil';
 
-export class ComposedTuneHint extends EditorSuggest<ComposedTune> {
+export class TuneCompositionHint extends EditorSuggest<ComposedTune> {
     constructor(app: App) {
         super(app);
     }
@@ -66,7 +66,7 @@ export class ComposedTuneHint extends EditorSuggest<ComposedTune> {
         let codeBlockFound = false;
         while (curLineNo >= 0) {
             const curLine = editor.getLine(curLineNo);
-            if (isHead(curLine)) {
+            if (isTuneHead(curLine)) {
                 start = curLineNo;
             }
             else if (isCodeBlockBoundary(curLine, true)) {

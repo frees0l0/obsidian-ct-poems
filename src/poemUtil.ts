@@ -2,13 +2,13 @@ import { MarkdownPostProcessorContext } from "obsidian";
 import { Tune } from "types";
 
 const CI_POEM_CODE_TAG = 'ci-poem'
-const CI_POEM_HEAD_TAG = '词牌:'
+const CI_POEM_TUNE_TAG = '词牌:'
 
 export function getCodeBlock(tune: Tune): string {
     const block = 
 `\`\`\`${CI_POEM_CODE_TAG}
 
-${CI_POEM_HEAD_TAG} ${tune.name}
+${CI_POEM_TUNE_TAG} ${tune.name}
 
 
 
@@ -22,7 +22,7 @@ export function viewCodeBlock(source: string, el: HTMLElement, ctx: MarkdownPost
     const div = el.createDiv({ cls: "ci-poem" });
     for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
-        if (isHead(row)) {
+        if (isTuneHead(row)) {
             const title = extractTuneNameAndTitle(row);
             div.createDiv({ text: title, cls: "ci-poem-title" });
         } else {
@@ -32,15 +32,15 @@ export function viewCodeBlock(source: string, el: HTMLElement, ctx: MarkdownPost
 }
 
 export function extractTuneNameAndTitle(row: string) {
-    return row.substring(CI_POEM_HEAD_TAG.length).trim().replace(/\./, "·");
+    return row.substring(CI_POEM_TUNE_TAG.length).trim().replace(/\./, "·");
 }
 
 export function extractTuneName(row: string): string {
-    return row.substring(CI_POEM_HEAD_TAG.length).trim().split(/\.|·/)[0];
+    return row.substring(CI_POEM_TUNE_TAG.length).trim().split(/\.|·/)[0];
 }
 
-export function isHead(row: string): boolean {
-    return row.trim().startsWith(CI_POEM_HEAD_TAG);
+export function isTuneHead(row: string): boolean {
+    return row.trim().startsWith(CI_POEM_TUNE_TAG);
 }
 
 export function isCodeBlockBoundary(row: string, isStart: boolean | undefined = undefined) {

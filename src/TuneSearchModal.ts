@@ -1,7 +1,7 @@
 import { App, Editor, FuzzySuggestModal, FuzzyMatch } from 'obsidian';
 import { Tune } from 'types';
 import { getAllTunes } from 'tunes';
-import { getCodeBlock } from 'ciPoem';
+import { getCodeBlock } from 'poemUtil';
 
 export class TuneSearchModal extends FuzzySuggestModal<Tune> {
   private editor: Editor;
