@@ -21,7 +21,7 @@ export class TuneSearchModal extends FuzzySuggestModal<Tune> {
 
   renderSuggestion(tune: FuzzyMatch<Tune>, el: HTMLElement) {
     el.createEl("div", { text: tune.item.name });
-    el.createEl("small", { text: tune.item.tones.substring(0, 20) + '......' });
+    el.createEl("small", { text: tune.item.tones[0].substring(0, 20) + '......' });
   }
 
   onChooseItem(tune: Tune, evt: MouseEvent | KeyboardEvent) {

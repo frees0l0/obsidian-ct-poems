@@ -24,9 +24,9 @@ export type PoemHead = {
 
 export type Tune = {
   name: string;
-  tones: string;
+  tones: string[];
 };
 
 export type ComposedTune = {
-  composedTones: string;
+  composedTones: string[];
 } & Tune;

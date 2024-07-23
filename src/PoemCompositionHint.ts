@@ -1,13 +1,12 @@
-import { App, Editor, EditorPosition, EditorSuggest, EditorSuggestTriggerInfo, TFile } from 'obsidian';
-import { ComposedTune, PoemKind } from 'types';
-import { extractHead, isCodeBlockBoundary } from 'poemUtil';
+import { App, Editor, EditorPosition, EditorSuggest, EditorSuggestContext, EditorSuggestTriggerInfo, TFile } from 'obsidian';
+import { ComposedTune, POEM_KIND_TUNE } from 'types';
+import { extractHead, isCodeBlockBoundary, splitLines } from 'poemUtil';
+import { getTune } from 'tunes';
+import { getTones } from 'tones';
 
-export abstract class PoemCompositionHint extends EditorSuggest<ComposedTune> {
-    private kind: PoemKind;
-
-    constructor(app: App, kind: PoemKind) {
+export class PoemCompositionHint extends EditorSuggest<ComposedTune> {
+    constructor(app: App) {
         super(app);
-        this.kind = kind;
     }
 
     onTrigger(cursor: EditorPosition, editor: Editor, file: TFile): EditorSuggestTriggerInfo | null {
@@ -38,6 +37,38 @@ export abstract class PoemCompositionHint extends EditorSuggest<ComposedTune> {
         };
     }
 
+    async getSuggestions(context: EditorSuggestContext): Promise<ComposedTune[]> {
+        const lines = splitLines(context.query);
+        const head = extractHead(lines[0]);
+        if (!head) {
+            return [];
+        }
+
+        const content = lines.slice(1);
+        if (head.kind == POEM_KIND_TUNE) {
+            const tuneName = head.title;
+            const tune = getTune(tuneName);
+            const tones = tune ? tune.tones : [];
+            const composedTones = getTones(content);
+            return [{
+                name: tuneName,
+                tones: tones,
+                composedTones: composedTones,
+            }];
+        } else {
+            return [];
+        }
+    }
+
+    renderSuggestion(tune: ComposedTune, el: HTMLElement) {
+        el.createDiv({ text: tune.name, cls: "poem-title" });
+
+        const tones = tune.tones;
+        for (let i = 0; i < tones.length; i++) {
+            el.createDiv({ text: tones[i], cls: "poem-line" });
+        }
+    }
+    
     async selectSuggestion(value: ComposedTune, evt: MouseEvent | KeyboardEvent) {
         // Do nothing
     }
@@ -48,7 +79,7 @@ export abstract class PoemCompositionHint extends EditorSuggest<ComposedTune> {
         while (curLineNo >= 0) {
             const curLine = editor.getLine(curLineNo);
             const head = extractHead(curLine);
-            if (head && head.kind == this.kind) {
+            if (head) {
                 start = curLineNo;
             }
             else if (isCodeBlockBoundary(curLine, true)) {

@@ -3,7 +3,7 @@ import { PluginSettings, DEFAULT_SETTINGS, POEM_CODE_TAG } from 'types';
 import { PoemsSettingTab } from 'PoemsSettingTab';
 import { TuneSearchModal } from 'TuneSearchModal';
 import { renderPoem } from 'poemUtil';
-import { TuneCompositionHint } from 'TuneCompositionHint';
+import { PoemCompositionHint } from 'PoemCompositionHint';
 
 export default class CTPoemsPlugin extends Plugin {
   settings: PluginSettings;
@@ -24,7 +24,7 @@ export default class CTPoemsPlugin extends Plugin {
     this.registerMarkdownCodeBlockProcessor(POEM_CODE_TAG, renderPoem);
 
     // Add hint for the composed tune
-    this.registerEditorSuggest(new TuneCompositionHint(this.app));
+    this.registerEditorSuggest(new PoemCompositionHint(this.app));
 
     // This adds a settings tab so the user can configure various aspects of the plugin
     this.addSettingTab(new PoemsSettingTab(this.app, this));
