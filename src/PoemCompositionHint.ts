@@ -1,8 +1,10 @@
 import { App, Editor, EditorPosition, EditorSuggest, EditorSuggestContext, EditorSuggestTriggerInfo, TFile } from 'obsidian';
-import { ComposedTune, POEM_KIND_TUNE } from 'types';
-import { extractHead, isCodeBlockBoundary, splitLines } from 'poemUtil';
+import { ComposedTune, PoemKind } from 'types';
+import { extractHead, isCodeBlockBoundary, splitLines, splitSentences } from 'poemUtil';
 import { getTune } from 'tunes';
-import { getTones } from 'tones';
+import { getTones, matchTone } from 'tones';
+
+const MAX_PEEK_LINES = 100;
 
 export class PoemCompositionHint extends EditorSuggest<ComposedTune> {
     constructor(app: App) {
@@ -10,6 +12,12 @@ export class PoemCompositionHint extends EditorSuggest<ComposedTune> {
     }
 
     onTrigger(cursor: EditorPosition, editor: Editor, file: TFile): EditorSuggestTriggerInfo | null {
+        const fileCache = this.app.metadataCache.getFileCache(file);
+        const frontMatter = fileCache?.frontmatter;
+        if (!frontMatter || !('poems' in frontMatter)) {
+            return null;
+        }
+
         const curLineNo = cursor.line;
         const curLine = editor.getLine(curLineNo)?.trim();
 
@@ -38,21 +46,24 @@ export class PoemCompositionHint extends EditorSuggest<ComposedTune> {
     }
 
     async getSuggestions(context: EditorSuggestContext): Promise<ComposedTune[]> {
-        const lines = splitLines(context.query);
+        const lines = splitLines(context.query, false);
         const head = extractHead(lines[0]);
         if (!head) {
             return [];
         }
 
-        const content = lines.slice(1);
-        if (head.kind == POEM_KIND_TUNE) {
+        const sents = lines.slice(1).flatMap(line => splitSentences(line));
+        if (head.kind == PoemKind.TUNE) {
             const tuneName = head.title;
             const tune = getTune(tuneName);
+            
             const tones = tune ? tune.tones : [];
-            const composedTones = getTones(content);
+            const wrapAt = tune ? tune.wrapAt : -1;
+            const composedTones = tune ? getTones(sents) : [];
             return [{
                 name: tuneName,
                 tones: tones,
+                wrapAt: wrapAt,
                 composedTones: composedTones,
             }];
         } else {
@@ -61,11 +72,39 @@ export class PoemCompositionHint extends EditorSuggest<ComposedTune> {
     }
 
     renderSuggestion(tune: ComposedTune, el: HTMLElement) {
-        el.createDiv({ text: tune.name, cls: "poem-title" });
+        el.createDiv({ text: tune.name, cls: 'tune-title' });
 
         const tones = tune.tones;
+        const composedTones = tune.composedTones;
+        const wrapAt = tune.wrapAt;
+
+        this.renderLineTones(el, tones.slice(0, wrapAt - 1), composedTones.slice(0, wrapAt - 1));
+        this.renderLineTones(el, tones.slice(wrapAt - 1), composedTones.slice(wrapAt - 1));
+    }
+
+    renderLineTones(el: HTMLElement, sentTones: string[], composedSentTones: string[]) {
+        const lineEl = el.createDiv({ cls: 'tune-line' });
+        for (let i = 0; i < sentTones.length; i++) {
+            this.renderSentenceTones(lineEl, sentTones[i], composedSentTones[i]);
+        }
+    }
+
+    renderSentenceTones(el: HTMLElement, tones: string, composedTones: string) {
+        // Tones ends with punc while composedTones does NOT, so the trailing punc skips the tone matching
+        console.info('renderSentenceTones', tones, composedTones);
+        if (!composedTones) {
+            return tones;
+        }
+
+        // TODO Merge spans with the same styles
         for (let i = 0; i < tones.length; i++) {
-            el.createDiv({ text: tones[i], cls: "poem-line" });
+            if (!composedTones[i]) {
+                el.createSpan({ text: tones[i] });
+            }
+            else {
+                const cls = matchTone(tones[i], composedTones[i]) ? 'tune-success' : 'tune-error';
+                el.createSpan({ text: tones[i], cls: cls});
+            }
         }
     }
     
@@ -76,7 +115,8 @@ export class PoemCompositionHint extends EditorSuggest<ComposedTune> {
     getPoemStart(curLineNo: number, editor: Editor): number {
         let start = -1;
         let codeBlockFound = false;
-        while (curLineNo >= 0) {
+        let peeks = 0;
+        while (curLineNo >= 0 && ++peeks <= MAX_PEEK_LINES) {
             const curLine = editor.getLine(curLineNo);
             const head = extractHead(curLine);
             if (head) {
@@ -98,7 +138,8 @@ export class PoemCompositionHint extends EditorSuggest<ComposedTune> {
     }
 
     getPoemEnd(curLineNo: number, editor: Editor): number {
-        while (curLineNo <= editor.lastLine()) {
+        let peeks = 0;
+        while (curLineNo <= editor.lastLine() && ++peeks <= MAX_PEEK_LINES) {
             const curLine = editor.getLine(curLineNo);
             if (isCodeBlockBoundary(curLine, false)) {
                 // Return the previous line

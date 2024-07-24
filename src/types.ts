@@ -9,24 +9,44 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 
 // Constants
 export const POEM_CODE_TAG = 'poem';
-export const POEM_KIND_TUNE = '词牌';
-export const POEM_KIND_S4 = '绝句';
-export const POEM_KIND_S8 = '律诗';
 
 // Types
-export type PoemKind = '词牌' | '绝句' | '律诗';
+export enum PoemKind {
+    TUNE = '词牌',
+    S4 = '绝句',
+    S8 = '律诗',
+}
+
+export enum Tone {
+  PING = '平',
+  ZE = '仄',
+  BOTH = '中',
+}
 
 export type PoemHead = {
-  kind: PoemKind;
+  kind: PoemKind; // 类型
   title: string; // 诗题或词牌名
   subtitle: string | null; // 词题
 };
 
 export type Tune = {
+  /**
+   * 词牌名
+   */
   name: string;
+  /**
+   * 包含每个句子平仄的数组
+   */
   tones: string[];
+  /**
+   * 在第几个句子换行（划分上下阕）
+   */
+  wrapAt: number;
 };
 
 export type ComposedTune = {
+  /**
+   * 包含每个句子填词平仄的数组
+   */
   composedTones: string[];
 } & Tune;

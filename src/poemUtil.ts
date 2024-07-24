@@ -1,15 +1,12 @@
+import { PATTERN_PINYIN, PATTERN_POEM_HEAD, PATTERN_DOT, PATTERN_SENTENCE } from "regexs";
 import { MarkdownPostProcessorContext } from "obsidian";
-import { POEM_CODE_TAG, POEM_KIND_S4, POEM_KIND_S8, POEM_KIND_TUNE, PoemHead, Tune } from "types";
-
-// 格式："词牌：菩萨蛮" or "词牌：菩萨蛮·秋思"
-const PATTERN_POEM_HEAD = /^(?<kind>\p{L}+)[:：]\s*(?<title>\p{L}+(?:[.·]\p{L}+)?)$/u;
-const PATTERN_DOT_SEP = /\.|·/;
+import { POEM_CODE_TAG, PoemHead, PoemKind, Tune } from "types";
 
 export function getCodeBlock(tune: Tune): string {
     const block = 
 `\`\`\`${POEM_CODE_TAG}
 
-${POEM_KIND_TUNE} ${tune.name}
+${PoemKind.TUNE} ${tune.name}
 
 
 
@@ -18,7 +15,9 @@ ${POEM_KIND_TUNE} ${tune.name}
 }
 
 export function renderPoem(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) : void {
-    const rows = splitLines(source);
+    // Remove pinyin annotations
+    source = source.replace(PATTERN_PINYIN, '');
+    const rows = splitLines(source, false);
 
     const div = el.createDiv({ cls: "poem" });
     for (let i = 0; i < rows.length; i++) {
@@ -44,14 +43,14 @@ export function extractHead(row: string): PoemHead | null {
     }
 
     const kind = match.groups.kind;
-    if (kind != POEM_KIND_TUNE && kind != POEM_KIND_S4 && kind != POEM_KIND_S8) {
+    if (kind != PoemKind.TUNE && kind != PoemKind.S4 && kind != PoemKind.S8) {
         return null;
     }
     
     let title = match.groups.title;
     let subtitle = null;
-    if (kind == POEM_KIND_TUNE) {
-        const parts = title.split(PATTERN_DOT_SEP);
+    if (kind == PoemKind.TUNE) {
+        const parts = title.split(PATTERN_DOT);
         if (parts.length > 1) {
             title = parts[0];
             subtitle = parts[1];
@@ -76,6 +75,14 @@ export function isCodeBlockBoundary(row: string, isStart: boolean | undefined = 
     }
 }
 
-export function splitLines(content: string): string[] {
-    return content.split("\n").map(row => row.trim()).filter(row => row.length > 0);
+export function splitLines(content: string, keepEmptyLines: boolean): string[] {
+    const lines = content.split('\n').map(line => line.trim());
+    return keepEmptyLines ? lines : lines.filter(l => l.length > 0);
 }
+
+export function splitSentences(line: string): string[] {
+    // Global match returns string[]
+    const sents = line.match(PATTERN_SENTENCE);
+    return sents ?? [];
+}
+

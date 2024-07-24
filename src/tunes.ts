@@ -1,5 +1,5 @@
 import { Tune } from "types";
-import { splitLines } from "poemUtil";
+import { splitLines, splitSentences } from "poemUtil";
 
 const ALL_TUNES = [
   {
@@ -8,11 +8,20 @@ const ALL_TUNES = [
   }
 ]
 .map(tune => {
-  return {
-    name: tune.name,
-    tones: splitLines(tune.tones)
-  }
+  return buildTune(tune.name, tune.tones);
 });
+
+function buildTune(name: string, tones: string): Tune {
+  const lines = splitLines(tones, false);
+  const sentTonesOfLines = lines.map(line => splitSentences(line));
+  const sentTones = sentTonesOfLines.flat();
+  const wrapAt = sentTonesOfLines[0].length + 1; // Starting from 1
+  return {
+    name: name,
+    tones: sentTones,
+    wrapAt: wrapAt,
+  }
+}
 
 export function getAllTunes(): Tune[] {
   return ALL_TUNES;

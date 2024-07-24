@@ -15,3 +15,21 @@
 .poem-line {
     padding: 14px 0 0 0;
 }
+
+.tune-title {
+    padding: 0 0 2px 0;
+    font-size: 120%;
+    font-weight: bold;
+}
+
+.tune-line {
+    padding: 14px 0 0 0;
+}
+
+.tune-success {
+    color: green;
+}
+
+.tune-error {
+    color: red;
+}
