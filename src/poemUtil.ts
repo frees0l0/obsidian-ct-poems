@@ -6,7 +6,7 @@ export function getCodeBlock(tune: Tune): string {
     const block = 
 `\`\`\`${POEM_CODE_TAG}
 
-${PoemKind.TUNE} ${tune.name}
+${PoemKind.CI} ${tune.name}
 
 
 
@@ -43,13 +43,13 @@ export function extractHead(row: string): PoemHead | null {
     }
 
     const kind = match.groups.kind;
-    if (kind != PoemKind.TUNE && kind != PoemKind.S4 && kind != PoemKind.S8) {
+    if (kind != PoemKind.CI && kind != PoemKind.S4 && kind != PoemKind.S8) {
         return null;
     }
     
     let title = match.groups.title;
     let subtitle = null;
-    if (kind == PoemKind.TUNE) {
+    if (kind == PoemKind.CI) {
         const parts = title.split(PATTERN_DOT);
         if (parts.length > 1) {
             title = parts[0];

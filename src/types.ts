@@ -12,7 +12,7 @@ export const POEM_CODE_TAG = 'poem';
 
 // Types
 export enum PoemKind {
-    TUNE = '词牌',
+    CI = '词牌',
     S4 = '绝句',
     S8 = '律诗',
 }
@@ -29,9 +29,10 @@ export type PoemHead = {
   subtitle: string | null; // 词题
 };
 
+// TODO Add poem kind to Tune
 export type Tune = {
   /**
-   * 词牌名
+   * 诗题或词牌名
    */
   name: string;
   /**

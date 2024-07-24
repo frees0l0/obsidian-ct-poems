@@ -53,7 +53,7 @@ export class PoemCompositionHint extends EditorSuggest<ComposedTune> {
         }
 
         const sents = lines.slice(1).flatMap(line => splitSentences(line));
-        if (head.kind == PoemKind.TUNE) {
+        if (head.kind == PoemKind.CI) {
             const tuneName = head.title;
             const tune = getTune(tuneName);
             
