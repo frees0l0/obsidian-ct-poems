@@ -9,6 +9,7 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 
 // Constants
 export const POEM_CODE_TAG = 'poem';
+export const POEMS_FRONT_MATTER = 'poems'
 
 // Types
 export enum PoemKind {

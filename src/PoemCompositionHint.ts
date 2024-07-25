@@ -96,10 +96,7 @@ export class PoemCompositionHint extends EditorSuggest<ComposedTune> {
 
     renderSentenceTones(el: HTMLElement, tones: string, composedTones: string) {
         // console.info('renderSentenceTones', tones, composedTones);
-        if (!composedTones) {
-            return tones;
-        }
-        
+        composedTones = composedTones ?? '';
         // TODO Merge spans with the same styles
         for (let i = 0; i < tones.length; i++) {
             // Tones ends with punc while composedTones does NOT, so the trailing punc skips the tone matching
@@ -114,7 +111,7 @@ export class PoemCompositionHint extends EditorSuggest<ComposedTune> {
     }
     
     async selectSuggestion(value: ComposedTune, evt: MouseEvent | KeyboardEvent) {
-        // Do nothing
+        this.close();
     }
 
     getPoemStart(curLineNo: number, editor: Editor): number {
