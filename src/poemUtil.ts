@@ -1,4 +1,4 @@
-import { PATTERN_PINYIN, PATTERN_POEM_HEAD, PATTERN_DOT, PATTERN_SENTENCE } from "regexs";
+import { PATTERN_PINYIN, PATTERN_POEM_HEAD, PATTERN_DOT, PATTERN_SENTENCE } from "regexps";
 import { MarkdownPostProcessorContext } from "obsidian";
 import { POEM_CODE_TAG, PoemHead, PoemKind, Tune } from "types";
 

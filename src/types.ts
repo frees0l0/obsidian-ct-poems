@@ -29,8 +29,11 @@ export type PoemHead = {
   subtitle: string | null; // 词题
 };
 
-// TODO Add poem kind to Tune
 export type Tune = {
+  /**
+   * 类型
+   */
+  kind: PoemKind;
   /**
    * 诗题或词牌名
    */
@@ -40,9 +43,9 @@ export type Tune = {
    */
   tones: string[];
   /**
-   * 在第几个句子换行（划分上下阕）
+   * 包含各段句子数量的数组
    */
-  wrapAt: number;
+  sections: number[];
 };
 
 export type ComposedTune = {

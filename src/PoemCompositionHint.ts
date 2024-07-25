@@ -58,12 +58,13 @@ export class PoemCompositionHint extends EditorSuggest<ComposedTune> {
             const tune = getTune(tuneName);
             
             const tones = tune ? tune.tones : [];
-            const wrapAt = tune ? tune.wrapAt : -1;
+            const sections = tune ? tune.sections : [];
             const composedTones = tune ? getTones(sents) : [];
             return [{
+                kind: head.kind,
                 name: tuneName,
                 tones: tones,
-                wrapAt: wrapAt,
+                sections: sections,
                 composedTones: composedTones,
             }];
         } else {
@@ -76,13 +77,17 @@ export class PoemCompositionHint extends EditorSuggest<ComposedTune> {
 
         const tones = tune.tones;
         const composedTones = tune.composedTones;
-        const wrapAt = tune.wrapAt;
+        const sections = tune.sections;
 
-        this.renderLineTones(el, tones.slice(0, wrapAt - 1), composedTones.slice(0, wrapAt - 1));
-        this.renderLineTones(el, tones.slice(wrapAt - 1), composedTones.slice(wrapAt - 1));
+        let sectionStart = 0;
+        for (let i = 0; i < sections.length; i++) {
+            const sectionEnd = sectionStart + sections[i];
+            this.renderSectionTones(el, tones.slice(sectionStart, sectionEnd), composedTones.slice(sectionStart, sectionEnd))
+            sectionStart = sectionEnd;
+        }
     }
 
-    renderLineTones(el: HTMLElement, sentTones: string[], composedSentTones: string[]) {
+    renderSectionTones(el: HTMLElement, sentTones: string[], composedSentTones: string[]) {
         const lineEl = el.createDiv({ cls: 'tune-line' });
         for (let i = 0; i < sentTones.length; i++) {
             this.renderSentenceTones(lineEl, sentTones[i], composedSentTones[i]);
@@ -90,14 +95,14 @@ export class PoemCompositionHint extends EditorSuggest<ComposedTune> {
     }
 
     renderSentenceTones(el: HTMLElement, tones: string, composedTones: string) {
-        // Tones ends with punc while composedTones does NOT, so the trailing punc skips the tone matching
-        console.info('renderSentenceTones', tones, composedTones);
+        // console.info('renderSentenceTones', tones, composedTones);
         if (!composedTones) {
             return tones;
         }
-
+        
         // TODO Merge spans with the same styles
         for (let i = 0; i < tones.length; i++) {
+            // Tones ends with punc while composedTones does NOT, so the trailing punc skips the tone matching
             if (!composedTones[i]) {
                 el.createSpan({ text: tones[i] });
             }

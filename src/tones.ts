@@ -1,11 +1,13 @@
 import { pinyin } from "pinyin-pro";
-import { PATTERN_WORD_WITH_PINYIN, PATTERN_SENTENCE_PUNC } from "regexs";
+import { PATTERN_WORD_WITH_PINYIN, PATTERN_SENTENCE_PUNC } from "regexps";
 import { Tone } from "types";
 
 export function getTones(sentences: string[]): string[] {
     return sentences.map(s => {
         // Remove trailing punctuation
-        s = s.replace(PATTERN_SENTENCE_PUNC, '')
+        if (s[s.length - 1].match(PATTERN_SENTENCE_PUNC)) {
+            s = s.substring(0, s.length - 1);
+        }
         // Handle pinyin annotations: word+pinyin -> pinyin
         s = s.replace(PATTERN_WORD_WITH_PINYIN, '$<pinyin>');
         // Keep annotated pinyin
