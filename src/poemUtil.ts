@@ -1,4 +1,4 @@
-import { PATTERN_PINYIN, PATTERN_POEM_HEAD, PATTERN_DOT, PATTERN_SENTENCE } from "regexps";
+import { PATTERN_PINYIN, PATTERN_POEM_HEAD, PATTERN_DOT, PATTERN_SENTENCE, PATTERN_SENTENCE_FULL } from "regexps";
 import { MarkdownPostProcessorContext } from "obsidian";
 import { POEM_CODE_TAG, PoemHead, PoemKind, Tune } from "types";
 
@@ -80,9 +80,8 @@ export function splitLines(content: string, keepEmptyLines: boolean): string[] {
     return keepEmptyLines ? lines : lines.filter(l => l.length > 0);
 }
 
-export function splitSentences(line: string): string[] {
+export function matchSentences(line: string, isFull = false): string[] {
     // Global match returns string[]
-    const sents = line.match(PATTERN_SENTENCE);
+    const sents = line.match(isFull ? PATTERN_SENTENCE_FULL : PATTERN_SENTENCE);
     return sents ?? [];
 }
-

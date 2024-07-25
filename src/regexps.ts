@@ -6,5 +6,10 @@ export const PATTERN_PINYIN = /[a-z]+[1-4]/g;
 
 export const PATTERN_DOT = /\.|·/;
 
-export const PATTERN_SENTENCE_PUNC = /[、，：。！？]/g;
+export const PATTERN_ENDING_PUNC = /[、，：。！？]$/;
+export const PATTERN_ENDING_RHYTHM_PUNC = /(?<rhythm>[<>])?(?<punc>[、，：。！？])$/;
+
+// Full or partial sentence with optional punctuation
 export const PATTERN_SENTENCE = /[\p{L}1-4]+[、，：。！？]?/gu;
+// Full sentence with rhythm (optional) and punctuation
+export const PATTERN_SENTENCE_FULL = /[\p{L}1-4]+[<>]?[、，：。！？]/gu;

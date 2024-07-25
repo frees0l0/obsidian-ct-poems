@@ -1,5 +1,6 @@
 import { PoemKind, Tune } from "types";
-import { splitLines, splitSentences } from "poemUtil";
+import { splitLines, matchSentences } from "poemUtil";
+import { PATTERN_ENDING_RHYTHM_PUNC } from "regexps";
 
 const CI_TUNES = [
   {
@@ -13,13 +14,16 @@ const CI_TUNES = [
 
 function buildTune(kind: PoemKind, name: string, tones: string): Tune {
   const lines = splitLines(tones, false);
-  const sentTonesOfLines = lines.map(line => splitSentences(line));
-  const sentTones = sentTonesOfLines.flat();
-  const sections = sentTonesOfLines.map(sentTonesOfline => sentTonesOfline.length);
+  const fullSentsOfLines = lines.map(line => matchSentences(line, true));
+  const fullSents = fullSentsOfLines.flat();
+  const sentsWithPuncs = fullSents.map(sent => sent.replace(PATTERN_ENDING_RHYTHM_PUNC, '$<punc>'));
+  const rhythms = fullSents.map(sent => sent.match(PATTERN_ENDING_RHYTHM_PUNC)?.groups?.rhythm ?? '');
+  const sections = fullSentsOfLines.map(sentTonesOfline => sentTonesOfline.length);
   return {
     kind: kind,
     name: name,
-    tones: sentTones,
+    tones: sentsWithPuncs,
+    rhythms: rhythms,
     sections: sections,
   }
 }

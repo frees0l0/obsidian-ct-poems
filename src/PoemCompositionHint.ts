@@ -1,6 +1,6 @@
 import { App, Editor, EditorPosition, EditorSuggest, EditorSuggestContext, EditorSuggestTriggerInfo, TFile } from 'obsidian';
 import { ComposedTune, PoemKind } from 'types';
-import { extractHead, isCodeBlockBoundary, splitLines, splitSentences } from 'poemUtil';
+import { extractHead, isCodeBlockBoundary, splitLines, matchSentences } from 'poemUtil';
 import { getTune } from 'tunes';
 import { getTones, matchTone } from 'tones';
 
@@ -52,18 +52,20 @@ export class PoemCompositionHint extends EditorSuggest<ComposedTune> {
             return [];
         }
 
-        const sents = lines.slice(1).flatMap(line => splitSentences(line));
+        const sents = lines.slice(1).flatMap(line => matchSentences(line));
         if (head.kind == PoemKind.CI) {
             const tuneName = head.title;
             const tune = getTune(tuneName);
             
             const tones = tune ? tune.tones : [];
+            const rhythms = tune ? tune.rhythms : [];
             const sections = tune ? tune.sections : [];
             const composedTones = tune ? getTones(sents) : [];
             return [{
                 kind: head.kind,
                 name: tuneName,
                 tones: tones,
+                rhythms: rhythms,
                 sections: sections,
                 composedTones: composedTones,
             }];

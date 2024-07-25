@@ -24,6 +24,12 @@ export enum Tone {
   BOTH = '中',
 }
 
+export enum Rhythm {
+  START = '<',
+  CONTINUE = '>',
+  NONE = '',
+}
+
 export type PoemHead = {
   kind: PoemKind; // 类型
   title: string; // 诗题或词牌名
@@ -43,6 +49,10 @@ export type Tune = {
    * 包含每个句子平仄的数组
    */
   tones: string[];
+  /**
+   * 包含每个句子韵脚的数组
+   */
+  rhythms: string[];
   /**
    * 包含各段句子数量的数组
    */
