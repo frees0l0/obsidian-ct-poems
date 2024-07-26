@@ -26,10 +26,18 @@
     padding: 14px 0 0 0;
 }
 
-.tune-success {
+.tone-success {
     color: green;
 }
 
-.tune-error {
+.tone-error {
     color: red;
+}
+
+.rhyme {
+    font-weight: bold;
+}
+
+.rhyme-error {
+    background-color: yellow;
 }

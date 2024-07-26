@@ -1,8 +1,8 @@
 import { App, Editor, EditorPosition, EditorSuggest, EditorSuggestContext, EditorSuggestTriggerInfo, TFile } from 'obsidian';
-import { ComposedTune, PoemKind } from 'types';
-import { extractHead, isCodeBlockBoundary, splitLines, matchSentences } from 'poemUtil';
+import { ComposedTune, PoemKind, Sentence, SentencePattern } from 'types';
+import { extractHead, isCodeBlockBoundary, splitLines, extractSentences } from 'poemUtil';
 import { getTune } from 'tunes';
-import { getTones, matchTone } from 'tones';
+import { getTones, matchRhymes, matchTone, needRhyme } from 'tones';
 
 const MAX_PEEK_LINES = 100;
 
@@ -52,22 +52,17 @@ export class PoemCompositionHint extends EditorSuggest<ComposedTune> {
             return [];
         }
 
-        const sents = lines.slice(1).flatMap(line => matchSentences(line));
-        if (head.kind == PoemKind.CI) {
+        const sents = lines.slice(1).flatMap(line => extractSentences(line));
+        const kind = head.kind;
+        if (kind == PoemKind.CI) {
             const tuneName = head.title;
             const tune = getTune(tuneName);
-            
-            const tones = tune ? tune.tones : [];
-            const rhythms = tune ? tune.rhythms : [];
-            const sections = tune ? tune.sections : [];
-            const composedTones = tune ? getTones(sents) : [];
             return [{
-                kind: head.kind,
+                kind: kind,
                 name: tuneName,
-                tones: tones,
-                rhythms: rhythms,
-                sections: sections,
-                composedTones: composedTones,
+                sentences: tune ? tune.sentences : [],
+                sections: tune ? tune.sections : [],
+                composedSentences: tune ? getTones(sents) : [],
             }];
         } else {
             return [];
@@ -77,39 +72,51 @@ export class PoemCompositionHint extends EditorSuggest<ComposedTune> {
     renderSuggestion(tune: ComposedTune, el: HTMLElement) {
         el.createDiv({ text: tune.name, cls: 'tune-title' });
 
-        const tones = tune.tones;
-        const composedTones = tune.composedTones;
+        const sents = tune.sentences;
+        const composedSents = tune.composedSentences;
         const sections = tune.sections;
 
+        matchRhymes(sents, composedSents, tune.kind == PoemKind.CI);
+        
         let sectionStart = 0;
         for (let i = 0; i < sections.length; i++) {
             const sectionEnd = sectionStart + sections[i];
-            this.renderSectionTones(el, tones.slice(sectionStart, sectionEnd), composedTones.slice(sectionStart, sectionEnd))
+            this.renderSectionTones(el, sents.slice(sectionStart, sectionEnd), composedSents.slice(sectionStart, sectionEnd))
             sectionStart = sectionEnd;
         }
     }
 
-    renderSectionTones(el: HTMLElement, sentTones: string[], composedSentTones: string[]) {
+    renderSectionTones(el: HTMLElement, sents: SentencePattern[], composedSents: Sentence[]) {
         const lineEl = el.createDiv({ cls: 'tune-line' });
-        for (let i = 0; i < sentTones.length; i++) {
-            this.renderSentenceTones(lineEl, sentTones[i], composedSentTones[i]);
+        for (let i = 0; i < sents.length; i++) {
+            this.renderSentenceTones(lineEl, sents[i], composedSents[i]);
         }
     }
 
-    renderSentenceTones(el: HTMLElement, tones: string, composedTones: string) {
-        // console.info('renderSentenceTones', tones, composedTones);
-        composedTones = composedTones ?? '';
-        // TODO Merge spans with the same styles
+    renderSentenceTones(el: HTMLElement, sent: SentencePattern, composedSent: Sentence | undefined) {
+        console.info('renderSentenceTones', sent, composedSent);
+        const tones = sent.tones;
+        const composedTones = composedSent?.tones;
         for (let i = 0; i < tones.length; i++) {
-            // Tones ends with punc while composedTones does NOT, so the trailing punc skips the tone matching
-            if (!composedTones[i]) {
+            // Tones.length >= composedTones.length as composed tones may have not been finished
+            if (!composedTones || !composedTones[i]) {
                 el.createSpan({ text: tones[i] });
             }
             else {
-                const cls = matchTone(tones[i], composedTones[i]) ? 'tune-success' : 'tune-error';
+                const rhymeNeeded = i == tones.length - 1 && needRhyme(sent.rhymeType);
+                const toneOk = matchTone(tones[i], composedTones[i]);
+                const rhymeOk = !rhymeNeeded || composedSent.rhymed;
+                const cls = toneOk ? ['tone-success'] : ['tone-error'];
+                if (!rhymeOk) {
+                    cls.push('rhyme-error')
+                }
+                if (rhymeNeeded) {
+                    cls.push('rhyme')
+                }
                 el.createSpan({ text: tones[i], cls: cls});
             }
         }
+        el.createSpan( {text: sent.punctuation} );
     }
     
     async selectSuggestion(value: ComposedTune, evt: MouseEvent | KeyboardEvent) {

@@ -1,12 +1,12 @@
 import { PATTERN_PINYIN, PATTERN_POEM_HEAD, PATTERN_DOT, PATTERN_SENTENCE, PATTERN_SENTENCE_FULL } from "regexps";
 import { MarkdownPostProcessorContext } from "obsidian";
-import { POEM_CODE_TAG, PoemHead, PoemKind, Tune } from "types";
+import { POEM_CODE_TAG, PoemHead, PoemKind, SentencePattern, Tune } from "types";
 
 export function getCodeBlock(tune: Tune): string {
     const block = 
 `\`\`\`${POEM_CODE_TAG}
 
-${PoemKind.CI} ${tune.name}
+${PoemKind.CI}: ${tune.name}
 
 
 
@@ -80,8 +80,18 @@ export function splitLines(content: string, keepEmptyLines: boolean): string[] {
     return keepEmptyLines ? lines : lines.filter(l => l.length > 0);
 }
 
-export function matchSentences(line: string, isFull = false): string[] {
+export function extractSentences(line: string): string[] {
     // Global match returns string[]
-    const sents = line.match(isFull ? PATTERN_SENTENCE_FULL : PATTERN_SENTENCE);
+    const sents = line.match(PATTERN_SENTENCE);
     return sents ?? [];
+}
+
+export function extractSentencePatterns(line: string): SentencePattern[] {
+    return Array.from(line.matchAll(PATTERN_SENTENCE_FULL), m => {
+        return {
+            tones: m.groups?.words ?? '',
+            rhymeType: m.groups?.rhymeType ?? '',
+            punctuation: m.groups?.punc ?? '',
+        }
+    });
 }
