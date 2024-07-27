@@ -1,33 +1,48 @@
-import { PoemKind, Tune } from "types";
-import { splitLines, extractSentencePatterns } from "poemUtil";
+import { TuneMatch, PoemKind, Sentence, Tune } from "types";
+import { splitLines, extractSentencePatterns, splitSections } from "poemUtil";
+import { PATTERN_COLON } from "regexps";
+import { matchSentences, matchScore } from "tones";
 
-const CI_TUNES = [
-  {
-    name: "菩萨蛮",
-    tones: "中平中仄平平仄<，中平中仄平平仄>。中仄仄平平<，中平中仄平>。\n中平平仄仄<，中仄中平仄>。中仄仄平平<，中平中仄平>。",
+const ALL_TUNES: Tune[] = [];
+
+export function loadTunes(kind: PoemKind, content: string) {
+  const lines = splitLines(content, false);
+  for (const line of lines) {
+    const parts = line.split(PATTERN_COLON);
+    if (parts.length == 2) {
+      const name = parts[0].trim();
+      const tones = parts[1].trim();
+      const tune = buildTune(kind, name, tones);
+
+      ALL_TUNES.push(tune);
+    }
   }
-]
-.map(tune => {
-  return buildTune(PoemKind.CI, tune.name, tune.tones);
-});
+  console.info(`Loaded ${ALL_TUNES.length} ci tunes`)
+}
+
+export function getTunes(kind: PoemKind | undefined = undefined): Tune[] {
+  return kind ? ALL_TUNES.filter(tune => tune.kind == kind) : ALL_TUNES;
+}
+
+export function matchTunes(kind: PoemKind, name: string | undefined, composedSents: Sentence[]): TuneMatch[] {
+  const tunes = ALL_TUNES.filter(tune => tune.kind == kind && (!name || tune.name === name));
+  return tunes.map(tune => {
+    const sents = matchSentences(tune.sentences, composedSents, tune.kind == PoemKind.CI);
+    const score = matchScore(sents);
+    const tuneMatch: TuneMatch = Object.assign({}, tune, {composedSentences: sents, score: score});
+    return tuneMatch;
+  }).sort((a, b) => -(a.score - b.score));
+}
 
 function buildTune(kind: PoemKind, name: string, tones: string): Tune {
-  const lines = splitLines(tones, false);
-  const sentsOfLines = lines.map(line => extractSentencePatterns(line));
-  const sents = sentsOfLines.flat();
-  const sections = sentsOfLines.map(sentTonesOfline => sentTonesOfline.length);
+  const sections = splitSections(tones);
+  const sentsOfSections = sections.map(line => extractSentencePatterns(line));
+  const sents = sentsOfSections.flat();
+  const lensOfSections = sentsOfSections.map(sentTonesOfline => sentTonesOfline.length);
   return {
     kind: kind,
     name: name,
     sentences: sents,
-    sections: sections,
+    sections: lensOfSections,
   }
-}
-
-export function getAllTunes(): Tune[] {
-  return CI_TUNES;
-}
-
-export function getTune(name: string): Tune | undefined {
-  return CI_TUNES.find(t => t.name === name);
 }

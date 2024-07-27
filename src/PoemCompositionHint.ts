@@ -1,12 +1,12 @@
 import { App, Editor, EditorPosition, EditorSuggest, EditorSuggestContext, EditorSuggestTriggerInfo, TFile } from 'obsidian';
-import { ComposedTune, PoemKind, Sentence, SentencePattern } from 'types';
+import { TuneMatch, Sentence, SentencePattern, ToneMatch } from 'types';
 import { extractHead, isCodeBlockBoundary, splitLines, extractSentences } from 'poemUtil';
-import { getTune } from 'tunes';
-import { getTones, matchRhymes, matchTone, needRhyme } from 'tones';
+import { matchTunes } from 'tunes';
+import { makeSentences } from 'tones';
 
 const MAX_PEEK_LINES = 100;
 
-export class PoemCompositionHint extends EditorSuggest<ComposedTune> {
+export class PoemCompositionHint extends EditorSuggest<TuneMatch> {
     constructor(app: App) {
         super(app);
     }
@@ -45,39 +45,27 @@ export class PoemCompositionHint extends EditorSuggest<ComposedTune> {
         };
     }
 
-    async getSuggestions(context: EditorSuggestContext): Promise<ComposedTune[]> {
+    async getSuggestions(context: EditorSuggestContext): Promise<TuneMatch[]> {
         const lines = splitLines(context.query, false);
         const head = extractHead(lines[0]);
         if (!head) {
             return [];
         }
 
-        const sents = lines.slice(1).flatMap(line => extractSentences(line));
         const kind = head.kind;
-        if (kind == PoemKind.CI) {
-            const tuneName = head.title;
-            const tune = getTune(tuneName);
-            return [{
-                kind: kind,
-                name: tuneName,
-                sentences: tune ? tune.sentences : [],
-                sections: tune ? tune.sections : [],
-                composedSentences: tune ? getTones(sents) : [],
-            }];
-        } else {
-            return [];
-        }
+        const tuneName = head.title;
+        const raws = lines.slice(1).flatMap(line => extractSentences(line));
+        const sents = makeSentences(raws);
+        return matchTunes(kind, tuneName, sents);
     }
 
-    renderSuggestion(tune: ComposedTune, el: HTMLElement) {
+    renderSuggestion(tune: TuneMatch, el: HTMLElement) {
+        el = el.createDiv( {cls: 'tune'} )
         el.createDiv({ text: tune.name, cls: 'tune-title' });
 
         const sents = tune.sentences;
         const composedSents = tune.composedSentences;
         const sections = tune.sections;
-
-        matchRhymes(sents, composedSents, tune.kind == PoemKind.CI);
-        
         let sectionStart = 0;
         for (let i = 0; i < sections.length; i++) {
             const sectionEnd = sectionStart + sections[i];
@@ -94,24 +82,25 @@ export class PoemCompositionHint extends EditorSuggest<ComposedTune> {
     }
 
     renderSentenceTones(el: HTMLElement, sent: SentencePattern, composedSent: Sentence | undefined) {
-        console.info('renderSentenceTones', sent, composedSent);
+        // console.info('renderSentenceTones', sent.tones, composedSent?.tones);
         const tones = sent.tones;
-        const composedTones = composedSent?.tones;
+        const composedTones = composedSent?.tones ?? '';
+        const tonesMatched = composedSent?.tonesMatched ?? '';
         for (let i = 0; i < tones.length; i++) {
             // Tones.length >= composedTones.length as composed tones may have not been finished
-            if (!composedTones || !composedTones[i]) {
+            if (!composedSent || !composedTones[i]) {
                 el.createSpan({ text: tones[i] });
             }
             else {
-                const rhymeNeeded = i == tones.length - 1 && needRhyme(sent.rhymeType);
-                const toneOk = matchTone(tones[i], composedTones[i]);
+                const toneOk = tonesMatched[i] == ToneMatch.YES;
+                const rhymeNeeded = i == tones.length - 1 && composedSent.rhymed != undefined;
                 const rhymeOk = !rhymeNeeded || composedSent.rhymed;
                 const cls = toneOk ? ['tone-success'] : ['tone-error'];
-                if (!rhymeOk) {
-                    cls.push('rhyme-error')
-                }
                 if (rhymeNeeded) {
                     cls.push('rhyme')
+                }
+                if (!rhymeOk) {
+                    cls.push('rhyme-error')
                 }
                 el.createSpan({ text: tones[i], cls: cls});
             }
@@ -119,7 +108,7 @@ export class PoemCompositionHint extends EditorSuggest<ComposedTune> {
         el.createSpan( {text: sent.punctuation} );
     }
     
-    async selectSuggestion(value: ComposedTune, evt: MouseEvent | KeyboardEvent) {
+    async selectSuggestion(value: TuneMatch, evt: MouseEvent | KeyboardEvent) {
         this.close();
     }
 

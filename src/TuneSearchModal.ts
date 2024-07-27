@@ -1,6 +1,6 @@
 import { App, Editor, FuzzySuggestModal, FuzzyMatch } from 'obsidian';
-import { Tune } from 'types';
-import { getAllTunes } from 'tunes';
+import { PoemKind, Tune } from 'types';
+import { getTunes } from 'tunes';
 import { getCodeBlock } from 'poemUtil';
 
 export class TuneSearchModal extends FuzzySuggestModal<Tune> {
@@ -12,16 +12,18 @@ export class TuneSearchModal extends FuzzySuggestModal<Tune> {
   }
   
   getItems(): Tune[] {
-    return getAllTunes();
+    return getTunes(PoemKind.CI);
   }
 
   getItemText(tune: Tune): string {
     return tune.name;
   }
 
-  renderSuggestion(tune: FuzzyMatch<Tune>, el: HTMLElement) {
-    el.createEl("div", { text: tune.item.name });
-    el.createEl("small", { text: tune.item.sentences[0].tones.substring(0, 20) + '......' });
+  renderSuggestion(match: FuzzyMatch<Tune>, el: HTMLElement) {
+    const tune = match.item;
+    const tip = tune.sentences.slice(0, 4).map(s => s.tones + s.punctuation).join('');
+    el.createEl("div", { text: tune.name });
+    el.createEl("small", { text: tip + '......' });
   }
 
   onChooseItem(tune: Tune, evt: MouseEvent | KeyboardEvent) {

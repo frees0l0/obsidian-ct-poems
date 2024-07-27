@@ -24,6 +24,11 @@ export enum Tone {
   BOTH = '中',
 }
 
+export enum ToneMatch {
+  YES = '1',
+  NO = '0',
+}
+
 export enum RhymeType {
   START = '<',
   CONTINUE = '>',
@@ -43,9 +48,11 @@ export type SentencePattern = {
 }
 
 export type Sentence = {
+  words: string;
   tones: string;
   rhyme: string;
   rhymed: boolean | undefined;
+  tonesMatched: string | undefined;
 }
 
 export type Tune = {
@@ -67,9 +74,13 @@ export type Tune = {
   sections: number[];
 };
 
-export type ComposedTune = {
+export type TuneMatch = {
   /**
    * 包含每个句子填词平仄的数组
    */
   composedSentences: Sentence[];
+  /**
+   * 匹配字数
+   */
+  score: number;
 } & Tune;

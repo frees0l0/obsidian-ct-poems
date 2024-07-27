@@ -1,4 +1,4 @@
-import { PATTERN_PINYIN, PATTERN_POEM_HEAD, PATTERN_DOT, PATTERN_SENTENCE, PATTERN_SENTENCE_FULL } from "regexps";
+import { PATTERN_PINYIN, PATTERN_POEM_HEAD, PATTERN_DOT, PATTERN_SENTENCE, PATTERN_SENTENCE_FULL, PATTERN_SECTION_SEP } from "regexps";
 import { MarkdownPostProcessorContext } from "obsidian";
 import { POEM_CODE_TAG, PoemHead, PoemKind, SentencePattern, Tune } from "types";
 
@@ -78,6 +78,11 @@ export function isCodeBlockBoundary(row: string, isStart: boolean | undefined = 
 export function splitLines(content: string, keepEmptyLines: boolean): string[] {
     const lines = content.split('\n').map(line => line.trim());
     return keepEmptyLines ? lines : lines.filter(l => l.length > 0);
+}
+
+export function splitSections(content: string): string[] {
+    const lines = content.split(PATTERN_SECTION_SEP).map(line => line.trim());
+    return lines;
 }
 
 export function extractSentences(line: string): string[] {

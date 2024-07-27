@@ -6,6 +6,8 @@ export const PATTERN_PINYIN = /[a-z]+[1-4]/g;
 export const PATTERN_PINYIN_TONE_NUM = /[1-4]$/;
 
 export const PATTERN_DOT = /\.|·/;
+export const PATTERN_COLON = /:|：/;
+export const PATTERN_SECTION_SEP = /[\n|]/;
 
 export const PATTERN_ENDING_PUNC = /[、，：。！？]$/;
 export const PATTERN_ENDING_RHYME_PUNC = /(?<rhyme>[<>])?(?<punc>[、，：。！？])$/;
@@ -14,3 +16,5 @@ export const PATTERN_ENDING_RHYME_PUNC = /(?<rhyme>[<>])?(?<punc>[、，：。�
 export const PATTERN_SENTENCE = /[\p{L}1-4]+[、，：。！？]?/gu;
 // Full sentence with rhythm (optional) and punctuation
 export const PATTERN_SENTENCE_FULL = /(?<words>[\p{L}1-4]+)(?<rhymeType>[<>])?(?<punc>[、，：。！？])/gu;
+
+export const PATTERN_TONE_MATCHED = /1/g;

@@ -1,16 +1,18 @@
-import { Plugin } from 'obsidian';
-import { PluginSettings, DEFAULT_SETTINGS, POEM_CODE_TAG, POEMS_FRONT_MATTER } from 'types';
+import { Plugin, normalizePath } from 'obsidian';
+import { PluginSettings, DEFAULT_SETTINGS, POEM_CODE_TAG, POEMS_FRONT_MATTER, PoemKind } from 'types';
 import { PoemsSettingTab } from 'PoemsSettingTab';
 import { TuneSearchModal } from 'TuneSearchModal';
 import { renderPoem } from 'poemUtil';
 import { PoemCompositionHint } from 'PoemCompositionHint';
 import { verifyOrAddFrontMatter } from 'utils';
+import { loadTunes } from 'tunes';
 
 export default class CTPoemsPlugin extends Plugin {
   settings: PluginSettings;
 
   async onload() {
     await this.loadSettings();
+    await this.loadExtraData();
     
     // Add command for inserting a new ci poem
     this.addCommand({
@@ -44,5 +46,16 @@ export default class CTPoemsPlugin extends Plugin {
 
   async saveSettings() {
     await this.saveData(this.settings);
+  }
+
+  onExternalSettingsChange() {
+    this.loadSettings();
+  }
+
+  async loadExtraData() {
+    // Load tunes for ci poems
+    const file = normalizePath(`${this.manifest.dir}/ciPatterns.txt`);
+    const content = await this.app.vault.adapter.read(file);
+    loadTunes(PoemKind.CI, content);
   }
 }

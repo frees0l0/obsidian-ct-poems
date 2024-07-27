@@ -1,35 +1,37 @@
 import { pinyin } from "pinyin-pro";
-import { PATTERN_WORD_WITH_PINYIN, PATTERN_ENDING_PUNC, PATTERN_PINYIN_TONE_NUM } from "regexps";
+import { PATTERN_WORD_WITH_PINYIN, PATTERN_ENDING_PUNC, PATTERN_PINYIN_TONE_NUM, PATTERN_TONE_MATCHED } from "regexps";
 import { getRhymeGroup, matchRhymeGroup } from "rhymes";
-import { RhymeType, Sentence, SentencePattern, Tone } from "types";
+import { RhymeType, Sentence, SentencePattern, Tone, ToneMatch } from "types";
 
-export function getTones(sentences: string[]): Sentence[] {
+export function makeSentences(sentences: string[]): Sentence[] {
     return sentences.map(s => {
         // Remove ending punctuation if present
         s = s.replace(PATTERN_ENDING_PUNC, '');
         // Extract words with pinyin annotations
-        const words = Array.from(s.matchAll(PATTERN_WORD_WITH_PINYIN), m => {
+        const annotatedWords = Array.from(s.matchAll(PATTERN_WORD_WITH_PINYIN), m => {
             return {
                 word: m.groups?.word,
                 pinyin: m.groups?.pinyin,
             };
         });
-        // Get pinyin finals and overwrite those which are annotated
-        s = words.map(w => w.word).join('');
-        const finals = pinyin(s, { type: 'array', pattern: 'final', toneType: 'num', v: true, nonZh: 'consecutive', segmentit: 1 });
-        words.forEach((w, i) => {
+        // Get pinyin finals and overwrite the annotated ones
+        const words = annotatedWords.map(w => w.word).join('');
+        const finals = pinyin(words, { type: 'array', pattern: 'final', toneType: 'num', v: true, nonZh: 'consecutive', segmentit: 1 });
+        annotatedWords.forEach((w, i) => {
             if (w.pinyin) {
                 finals[i] = w.pinyin;
             }
         })
-        // Get tones and rhyme
+        // Build sentence
         const tones = finals.map(py => toneOfPinyin(py)).join('');
         const rhyme = finals.at(-1)?.replace(PATTERN_PINYIN_TONE_NUM, '') ?? '';
         // The sentence may be incomplete, so do not decide whether rhymed here
         return {
+            words: words,
             tones: tones,
             rhyme: rhyme,
             rhymed: undefined,
+            tonesMatched: undefined,
         }
     });
 }
@@ -48,25 +50,71 @@ export function needRhyme(rhymeType: string) {
 }
 
 /**
- * Matching result is stored in the given composed sentences.
+ * Matching result is stored in the returned composed sentences.
  */
-export function matchRhymes(sentPatterns: SentencePattern[], composedSents: Sentence[], looseRhymeMatch: boolean) {
+export function matchSentences(sents: SentencePattern[], composedSents: Sentence[], looseRhymeMatch: boolean): Sentence[] {
+    const result: Sentence[] = [];
     let curRhymeGroup = null;
-    for (let i = 0; i < sentPatterns.length; i++) {
-        const sent = sentPatterns[i];
-        const composedSent = composedSents[i];
+    for (let i = 0; i < sents.length; i++) {
+        const sent = sents[i];
+        let composedSent = composedSents[i];
         // Break on unfinished sentence
-        if (!composedSent || composedSent.tones.length < sent.tones.length) {
+        if (!composedSent) {
             break;
         }
-
-        if (sent.rhymeType == RhymeType.START) {
-            curRhymeGroup = getRhymeGroup(composedSent.rhyme);
-            composedSent.rhymed = true;
+        
+        // Shallow copy composed sentence for modification
+        composedSent = Object.assign({}, composedSent);
+        const tones = sent.tones;
+        const composedTones = composedSent.tones;
+        // Match sentence's rhyme only for complete sentence
+        if (composedTones.length == tones.length) {
+            if (sent.rhymeType == RhymeType.START) {
+                curRhymeGroup = getRhymeGroup(composedSent.rhyme);
+                composedSent.rhymed = true;
+            }
+            else if (sent.rhymeType == RhymeType.CONTINUE) {
+                const rhymeGroup = getRhymeGroup(composedSent.rhyme);
+                composedSent.rhymed = curRhymeGroup != null && matchRhymeGroup(curRhymeGroup, rhymeGroup, looseRhymeMatch);
+            }
         }
-        else if (sent.rhymeType == RhymeType.CONTINUE) {
-            const rhymeGroup = getRhymeGroup(composedSent.rhyme);
-            composedSent.rhymed = curRhymeGroup != null && matchRhymeGroup(curRhymeGroup, rhymeGroup, true);
+
+        // Match sentence's tones (depending on rhyme matching)
+        const tonesMatched = [];
+        for (let i = 0; i < tones.length; i++) {
+            const tone = tones[i];
+            const composedTone = composedTones[i];
+            // Break on unfinished sentence
+            if (!composedTone) {
+                break;
+            }
+
+            const toneOk = matchTone(tone, composedTone);
+            tonesMatched.push(toneOk ? ToneMatch.YES : ToneMatch.NO);
+        }
+        composedSent.tonesMatched = tonesMatched.join('');
+
+        // Add modified sentence to result
+        result.push(composedSent);
+
+        // Break on sentence longer than expected
+        if (composedTones.length > tones.length) {
+            break;
         }
     }
+    return result;
+}
+
+/**
+ * Calculate score based on already matched sentences.
+ */
+export function matchScore(sents: Sentence[]): number {
+    return sents.reduce((score, sent) => {
+        if (sent.tonesMatched) {
+            const tonesMatched = sent.tonesMatched.match(PATTERN_TONE_MATCHED)?.length ?? 0;
+            return tonesMatched && sent.rhymed == false ? score + tonesMatched - 1 : score + tonesMatched;
+        } else {
+            return score;
+        }
+    }, 0);
 }
