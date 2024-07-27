@@ -17,7 +17,7 @@ export function loadTunes(kind: PoemKind, content: string) {
       ALL_TUNES.push(tune);
     }
   }
-  console.info(`Loaded ${ALL_TUNES.length} ci tunes`)
+  console.info(`Loaded ${ALL_TUNES.length} tunes of ${kind}`)
 }
 
 export function getTunes(kind: PoemKind | undefined = undefined): Tune[] {
