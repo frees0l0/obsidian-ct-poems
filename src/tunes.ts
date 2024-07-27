@@ -27,9 +27,13 @@ export function getTunes(kind: PoemKind | undefined = undefined): Tune[] {
 export function matchTunes(kind: PoemKind, name: string | undefined, composedSents: Sentence[]): TuneMatch[] {
   const tunes = ALL_TUNES.filter(tune => tune.kind == kind && (!name || tune.name === name));
   return tunes.map(tune => {
-    const sents = matchSentences(tune.sentences, composedSents, tune.kind == PoemKind.CI);
-    const score = matchScore(sents);
-    const tuneMatch: TuneMatch = Object.assign({}, tune, {composedSentences: sents, score: score});
+    const result = matchSentences(tune.sentencePatterns, composedSents, tune.kind == PoemKind.CI);
+    const score = matchScore(result.sentences);
+    // Overwrite tune's props with matched result
+    const tuneMatch: TuneMatch = Object.assign({}, tune, {
+      sentencePatterns: result.patterns,
+      composedSentences: result.sentences, score: score
+    });
     return tuneMatch;
   }).sort((a, b) => -(a.score - b.score));
 }
@@ -42,7 +46,7 @@ function buildTune(kind: PoemKind, name: string, tones: string): Tune {
   return {
     kind: kind,
     name: name,
-    sentences: sents,
+    sentencePatterns: sents,
     sections: lensOfSections,
   }
 }

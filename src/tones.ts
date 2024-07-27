@@ -1,7 +1,7 @@
 import { pinyin } from "pinyin-pro";
 import { PATTERN_WORD_WITH_PINYIN, PATTERN_ENDING_PUNC, PATTERN_PINYIN_TONE_NUM, PATTERN_TONE_MATCHED } from "regexps";
 import { getRhymeGroup, matchRhymeGroup } from "rhymes";
-import { RhymeType, Sentence, SentencePattern, Tone, ToneMatch } from "types";
+import { RhymeType, Sentence, SentencePattern, SentencesMatch, Tone, ToneMatch } from "types";
 
 export function makeSentences(sentences: string[]): Sentence[] {
     return sentences.map(s => {
@@ -50,10 +50,10 @@ export function needRhyme(rhymeType: string) {
 }
 
 /**
- * Matching result is stored in the returned composed sentences.
+ * Return the modified copies of the given patterns and sentences.
  */
-export function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence[], looseRhymeMatch: boolean): Sentence[] {
-    const result: Sentence[] = [];
+export function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence[], looseRhymeMatch: boolean): SentencesMatch {
+    const sentsNew: Sentence[] = [];
     let curRhymeGroup = null;
     for (let i = 0; i < sentPatterns.length; i++) {
         const sentPattern = sentPatterns[i];
@@ -79,22 +79,11 @@ export function matchSentences(sentPatterns: SentencePattern[], composedSents: S
         }
 
         // Match sentence's tones (depending on rhyme matching)
-        const tonesMatched = [];
-        for (let i = 0; i < sentPattern.tones.length; i++) {
-            const tone = sentPattern.tones[i];
-            const composedTone = composedSent.tones[i];
-            // Break on unfinished sentence
-            if (!composedTone) {
-                break;
-            }
-
-            const toneOk = matchTone(tone, composedTone);
-            tonesMatched.push(toneOk ? ToneMatch.YES : ToneMatch.NO);
-        }
+        const tonesMatched = matchSentenceTones(sentPattern, composedSent);
         composedSent.tonesMatched = tonesMatched.join('');
 
         // Add modified sentence to result
-        result.push(composedSent);
+        sentsNew.push(composedSent);
 
         // Break on sentence with wrong length
         if ((i == composedSents.length - 1 && composedSent.tones.length > sentPattern.tones.length) ||
@@ -102,7 +91,26 @@ export function matchSentences(sentPatterns: SentencePattern[], composedSents: S
             break;
         }
     }
-    return result;
+    return {
+        patterns: sentPatterns,
+        sentences: sentsNew,
+    };
+}
+
+function matchSentenceTones(sentPattern: SentencePattern, composedSent: Sentence) {
+    const tonesMatched = [];
+    for (let i = 0; i < sentPattern.tones.length; i++) {
+        const tone = sentPattern.tones[i];
+        const composedTone = composedSent.tones[i];
+        // Break on unfinished sentence
+        if (!composedTone) {
+            break;
+        }
+
+        const toneOk = matchTone(tone, composedTone);
+        tonesMatched.push(toneOk ? ToneMatch.YES : ToneMatch.NO);
+    }
+    return tonesMatched;
 }
 
 /**

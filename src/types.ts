@@ -55,6 +55,11 @@ export type Sentence = {
   tonesMatched: string | undefined;
 }
 
+export type SentencesMatch = {
+  patterns: SentencePattern[];
+  sentences: Sentence[];
+}
+
 export type Tune = {
   /**
    * 类型
@@ -67,7 +72,7 @@ export type Tune = {
   /**
    * 包含每个句子平仄的数组
    */
-  sentences: SentencePattern[];
+  sentencePatterns: SentencePattern[];
   /**
    * 包含各段句子数量的数组
    */

@@ -21,7 +21,7 @@ export class TuneSearchModal extends FuzzySuggestModal<Tune> {
 
   renderSuggestion(match: FuzzyMatch<Tune>, el: HTMLElement) {
     const tune = match.item;
-    const tip = tune.sentences.slice(0, 4).map(s => s.tones + s.punctuation).join('');
+    const tip = tune.sentencePatterns.slice(0, 4).map(s => s.tones + s.punctuation).join('');
     el.createEl("div", { text: tune.name });
     el.createEl("small", { text: tip + '......' });
   }

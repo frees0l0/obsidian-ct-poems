@@ -63,7 +63,7 @@ export class PoemCompositionHint extends EditorSuggest<TuneMatch> {
         el = el.createDiv( {cls: 'tune'} )
         el.createDiv({ text: tune.name, cls: 'tune-title' });
 
-        const sents = tune.sentences;
+        const sents = tune.sentencePatterns;
         const composedSents = tune.composedSentences;
         const sections = tune.sections;
         let sectionStart = 0;
