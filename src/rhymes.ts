@@ -76,8 +76,8 @@ class ChineseStandardRhymes extends Rhymes {
             [
                 ["一啊", ["a", "ia", "ua"]],
                 ["二喔", ["o", "uo"]],
-                ["三鹅", ["e", "ie", "ve"]],
-                ["四衣", ["i", "-i"]],
+                ["三鹅", ["e", "ie", "ue", "ve"]],
+                ["四衣", ["i"]],
                 ["五乌", ["u"]],
                 ["六迂", ["v"]],
                 ["七哀", ["ai", "uai"]],
