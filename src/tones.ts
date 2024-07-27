@@ -52,11 +52,11 @@ export function needRhyme(rhymeType: string) {
 /**
  * Matching result is stored in the returned composed sentences.
  */
-export function matchSentences(sents: SentencePattern[], composedSents: Sentence[], looseRhymeMatch: boolean): Sentence[] {
+export function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence[], looseRhymeMatch: boolean): Sentence[] {
     const result: Sentence[] = [];
     let curRhymeGroup = null;
-    for (let i = 0; i < sents.length; i++) {
-        const sent = sents[i];
+    for (let i = 0; i < sentPatterns.length; i++) {
+        const sentPattern = sentPatterns[i];
         let composedSent = composedSents[i];
         // Break on unfinished sentence
         if (!composedSent) {
@@ -65,15 +65,14 @@ export function matchSentences(sents: SentencePattern[], composedSents: Sentence
         
         // Shallow copy composed sentence for modification
         composedSent = Object.assign({}, composedSent);
-        const tones = sent.tones;
-        const composedTones = composedSent.tones;
+
         // Match sentence's rhyme only for complete sentence
-        if (composedTones.length == tones.length) {
-            if (sent.rhymeType == RhymeType.START) {
+        if (composedSent.tones.length == sentPattern.tones.length) {
+            if (sentPattern.rhymeType == RhymeType.START) {
                 curRhymeGroup = getRhymeGroup(composedSent.rhyme);
                 composedSent.rhymed = true;
             }
-            else if (sent.rhymeType == RhymeType.CONTINUE) {
+            else if (sentPattern.rhymeType == RhymeType.CONTINUE) {
                 const rhymeGroup = getRhymeGroup(composedSent.rhyme);
                 composedSent.rhymed = curRhymeGroup != null && matchRhymeGroup(curRhymeGroup, rhymeGroup, looseRhymeMatch);
             }
@@ -81,9 +80,9 @@ export function matchSentences(sents: SentencePattern[], composedSents: Sentence
 
         // Match sentence's tones (depending on rhyme matching)
         const tonesMatched = [];
-        for (let i = 0; i < tones.length; i++) {
-            const tone = tones[i];
-            const composedTone = composedTones[i];
+        for (let i = 0; i < sentPattern.tones.length; i++) {
+            const tone = sentPattern.tones[i];
+            const composedTone = composedSent.tones[i];
             // Break on unfinished sentence
             if (!composedTone) {
                 break;
@@ -97,8 +96,9 @@ export function matchSentences(sents: SentencePattern[], composedSents: Sentence
         // Add modified sentence to result
         result.push(composedSent);
 
-        // Break on sentence longer than expected
-        if (composedTones.length > tones.length) {
+        // Break on sentence with wrong length
+        if ((i == composedSents.length - 1 && composedSent.tones.length > sentPattern.tones.length) ||
+            (i < composedSents.length - 1 && composedSent.tones.length != sentPattern.tones.length)) {
             break;
         }
     }
