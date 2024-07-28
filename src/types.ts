@@ -38,7 +38,7 @@ export enum RhymeType {
 export type PoemHead = {
   kind: PoemKind; // 类型
   title: string; // 诗题或词牌名
-  subtitle: string | null; // 词题
+  subtitle: string | undefined; // 词题
 };
 
 export type SentencePattern = {
@@ -66,7 +66,7 @@ export type Tune = {
    */
   kind: PoemKind;
   /**
-   * 诗题或词牌名
+   * 词牌名或空
    */
   name: string;
   /**

@@ -1,7 +1,7 @@
 import { App, Editor, FuzzySuggestModal, FuzzyMatch } from 'obsidian';
 import { PoemKind, Tune } from 'types';
 import { getTunes } from 'tunes';
-import { getCodeBlock } from 'poemUtil';
+import { insertPoemInEditor } from 'poemUtil';
 
 export class TuneSearchModal extends FuzzySuggestModal<Tune> {
   private editor: Editor;
@@ -27,15 +27,6 @@ export class TuneSearchModal extends FuzzySuggestModal<Tune> {
   }
 
   onChooseItem(tune: Tune, evt: MouseEvent | KeyboardEvent) {
-    const codeBlock = getCodeBlock(tune);
-    const cursor = this.editor.getCursor();
-
-    this.editor.transaction({
-      changes: [{ from: cursor, text: codeBlock }],
-    });
-    this.editor.setCursor({
-      line: cursor.line + codeBlock.split('\n').length - 3,
-      ch: 0,
-    });
+    insertPoemInEditor({ kind: tune.kind, title: tune.name, subtitle: undefined }, this.editor);
   }
 }

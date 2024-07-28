@@ -1,7 +1,7 @@
 import { pinyin } from "pinyin-pro";
 import { PATTERN_WORD_WITH_PINYIN, PATTERN_ENDING_PUNC, PATTERN_PINYIN_TONE_NUM, PATTERN_TONE_MATCHED } from "regexps";
 import { getRhymeGroup, matchRhymeGroup } from "rhymes";
-import { RhymeType, Sentence, SentencePattern, SentencesMatch, Tone, ToneMatch } from "types";
+import { PoemKind, RhymeType, Sentence, SentencePattern, SentencesMatch, Tone, ToneMatch } from "types";
 
 export function makeSentences(sentences: string[]): Sentence[] {
     return sentences.map(s => {
@@ -50,13 +50,16 @@ export function needRhyme(rhymeType: string) {
 }
 
 /**
- * Return the modified copies of the given patterns and sentences.
+ * Return the modified copies of all the patterns and only the matched sentences.
  */
-export function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence[], looseRhymeMatch: boolean): SentencesMatch {
-    const sentsNew: Sentence[] = [];
+export function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence[], kind: PoemKind): SentencesMatch {
+    const patternsResult = kind == PoemKind.CI ? sentPatterns : [...sentPatterns];
+    const sentsResult: Sentence[] = [];
+    const looseRhymeMatch = kind == PoemKind.CI;
+
     let curRhymeGroup = null;
-    for (let i = 0; i < sentPatterns.length; i++) {
-        const sentPattern = sentPatterns[i];
+    for (let i = 0; i < patternsResult.length; i++) {
+        const sentPattern = patternsResult[i];
         let composedSent = composedSents[i];
         // Break on unfinished sentence
         if (!composedSent) {
@@ -78,12 +81,12 @@ export function matchSentences(sentPatterns: SentencePattern[], composedSents: S
             }
         }
 
-        // Match sentence's tones (depending on rhyme matching)
+        // Match sentence's tones
         const tonesMatched = matchSentenceTones(sentPattern, composedSent);
         composedSent.tonesMatched = tonesMatched.join('');
 
         // Add modified sentence to result
-        sentsNew.push(composedSent);
+        sentsResult.push(composedSent);
 
         // Break on sentence with wrong length
         if ((i == composedSents.length - 1 && composedSent.tones.length > sentPattern.tones.length) ||
@@ -92,8 +95,8 @@ export function matchSentences(sentPatterns: SentencePattern[], composedSents: S
         }
     }
     return {
-        patterns: sentPatterns,
-        sentences: sentsNew,
+        patterns: patternsResult,
+        sentences: sentsResult,
     };
 }
 

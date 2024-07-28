@@ -1,5 +1,5 @@
 import { App, Editor, EditorPosition, EditorSuggest, EditorSuggestContext, EditorSuggestTriggerInfo, TFile } from 'obsidian';
-import { TuneMatch, Sentence, SentencePattern, ToneMatch } from 'types';
+import { TuneMatch, Sentence, SentencePattern, ToneMatch, PoemKind } from 'types';
 import { extractHead, isCodeBlockBoundary, splitLines, extractSentences } from 'poemUtil';
 import { matchTunes } from 'tunes';
 import { makeSentences } from 'tones';
@@ -53,15 +53,17 @@ export class PoemCompositionHint extends EditorSuggest<TuneMatch> {
         }
 
         const kind = head.kind;
-        const tuneName = head.title;
+        const title = head.title;
         const raws = lines.slice(1).flatMap(line => extractSentences(line));
         const sents = makeSentences(raws);
-        return matchTunes(kind, tuneName, sents);
+        return matchTunes(kind, title, sents);
     }
 
     renderSuggestion(tune: TuneMatch, el: HTMLElement) {
         el = el.createDiv( {cls: 'tune'} )
-        el.createDiv({ text: tune.name, cls: 'tune-title' });
+
+        const title = tune.kind == PoemKind.CI ? tune.name: tune.kind;
+        el.createDiv({ text: title, cls: 'tune-title' });
 
         const sents = tune.sentencePatterns;
         const composedSents = tune.composedSentences;

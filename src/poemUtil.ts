@@ -1,12 +1,12 @@
 import { PATTERN_PINYIN, PATTERN_POEM_HEAD, PATTERN_DOT, PATTERN_SENTENCE, PATTERN_SENTENCE_FULL, PATTERN_SECTION_SEP } from "regexps";
-import { MarkdownPostProcessorContext } from "obsidian";
-import { POEM_CODE_TAG, PoemHead, PoemKind, SentencePattern, Tune } from "types";
+import { Editor, MarkdownPostProcessorContext } from "obsidian";
+import { POEM_CODE_TAG, PoemHead, PoemKind, SentencePattern } from "types";
 
-export function getCodeBlock(tune: Tune): string {
+export function getCodeBlock(head: PoemHead): string {
     const block = 
 `\`\`\`${POEM_CODE_TAG}
 
-${PoemKind.CI}: ${tune.name}
+${head.kind}: ${head.title}
 
 
 
@@ -32,6 +32,19 @@ export function renderPoem(source: string, el: HTMLElement, ctx: MarkdownPostPro
     }
 }
 
+export function insertPoemInEditor(head: PoemHead, editor: Editor) {
+    const codeBlock = getCodeBlock(head);
+    const cursor = editor.getCursor();
+
+    editor.transaction({
+      changes: [{ from: cursor, text: codeBlock }],
+    });
+    editor.setCursor({
+      line: cursor.line + codeBlock.split('\n').length - 3,
+      ch: 0,
+    });
+}
+
 export function isHead(row: string): boolean {
     return row.trim().match(PATTERN_POEM_HEAD) != null;
 }
@@ -47,8 +60,8 @@ export function extractHead(row: string): PoemHead | null {
         return null;
     }
     
-    let title = match.groups.title;
-    let subtitle = null;
+    let title = match.groups.title ?? '无题';
+    let subtitle;
     if (kind == PoemKind.CI) {
         const parts = title.split(PATTERN_DOT);
         if (parts.length > 1) {
