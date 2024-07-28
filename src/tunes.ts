@@ -138,8 +138,8 @@ function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence
         break;
       }
 
-      // Break on unmatched key of tones only for first and complete sentence
-      if (i == 0 && composedSent.tones.length == sentPattern.tones.length &&
+      // Break on unmatched key of tones only for first and complete sentence of S4/S8 poems
+      if (hasVariants && i == 0 && composedSent.tones.length == sentPattern.tones.length &&
           keyOfTones(sentPattern.tones, kind) != keyOfTones(composedSent.tones, kind)) {
         break;
       }
