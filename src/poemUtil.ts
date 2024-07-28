@@ -25,7 +25,9 @@ export function renderPoem(source: string, el: HTMLElement, ctx: MarkdownPostPro
         const head = extractHead(row);
         if (head) {
             const title = head.subtitle ? `${head.title}·${head.subtitle}` : head.title;
-            div.createDiv({ text: title, cls: "poem-title" });
+            const headEl = div.createDiv({ cls: "poem-head" });
+            headEl.createSpan({ text: title, cls: "poem-title" });
+            headEl.createSpan({ text: head.kind, cls: "poem-kind" });
         } else {
             div.createDiv({ text: row, cls: "poem-line" });
         }
