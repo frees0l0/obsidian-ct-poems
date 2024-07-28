@@ -1,6 +1,6 @@
 import { PATTERN_PINYIN, PATTERN_POEM_HEAD, PATTERN_DOT, PATTERN_SENTENCE, PATTERN_SENTENCE_FULL, PATTERN_SECTION_SEP } from "regexps";
 import { Editor, MarkdownPostProcessorContext } from "obsidian";
-import { POEM_CODE_TAG, PoemHead, PoemKind, SentencePattern } from "types";
+import { POEM_CODE_TAG, PatternType, PoemHead, PoemKind, SentencePattern } from "types";
 
 export function getCodeBlock(head: PoemHead): string {
     const block = 
@@ -112,6 +112,7 @@ export function extractSentencePatterns(line: string): SentencePattern[] {
             tones: m.groups?.words ?? '',
             rhymeType: m.groups?.rhymeType ?? '',
             punctuation: m.groups?.punc ?? '',
+            patternType: PatternType.NORMAL,
         }
     });
 }

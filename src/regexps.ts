@@ -16,5 +16,7 @@ export const PATTERN_ENDING_RHYME_PUNC = /(?<rhyme>[<>])?(?<punc>[、，：。�
 export const PATTERN_SENTENCE = /[\p{L}1-4]+[、，：。！？]?/gu;
 // Full sentence with rhythm (optional) and punctuation
 export const PATTERN_SENTENCE_FULL = /(?<words>[\p{L}1-4]+)(?<rhymeType>[<>])?(?<punc>[、，：。！？])/gu;
+// Sentence variants mapping
+export const PATTERN_SENTENCE_VARIANTS = /^(?<normal>\p{L}+)>(?<variants>[\p{L}/]+)(?:-(?<counterpart>\p{L}+))?$/u;
 
 export const PATTERN_TONE_MATCHED = /1/g;

@@ -5,7 +5,7 @@ import { TuneSearchModal } from 'TuneSearchModal';
 import { renderPoem, insertPoemInEditor } from 'poemUtil';
 import { PoemCompositionHint } from 'PoemCompositionHint';
 import { verifyOrAddFrontMatter } from 'utils';
-import { getTunes, loadTunes } from 'tunes';
+import { getTunes, loadTunes, loadVariants } from 'tunes';
 
 export default class CTPoemsPlugin extends Plugin {
   settings: PluginSettings;
@@ -89,12 +89,20 @@ export default class CTPoemsPlugin extends Plugin {
 
     for (const config of configs) {
       try {
-        const ciFile = normalizePath(`${this.manifest.dir}/${config[1]}`);
-        const ciContent = await this.app.vault.adapter.read(ciFile);
-        loadTunes(config[0] as PoemKind, ciContent);
+        const file = normalizePath(`${this.manifest.dir}/${config[1]}`);
+        const content = await this.app.vault.adapter.read(file);
+        loadTunes(config[0] as PoemKind, content);
       } catch (error) {
         console.error(`Failed to load tunes of ${config[0]}`, error);
       }
+    }
+
+    try {
+      const file = normalizePath(`${this.manifest.dir}/variants.txt`);
+      const content = await this.app.vault.adapter.read(file);
+      loadVariants(content);
+    } catch (error) {
+      console.error(`Failed to load variants`, error);
     }
   }
 }

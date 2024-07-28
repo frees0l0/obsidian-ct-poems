@@ -1,7 +1,6 @@
 import { pinyin } from "pinyin-pro";
-import { PATTERN_WORD_WITH_PINYIN, PATTERN_ENDING_PUNC, PATTERN_PINYIN_TONE_NUM, PATTERN_TONE_MATCHED } from "regexps";
-import { getRhymeGroup, matchRhymeGroup } from "rhymes";
-import { PoemKind, RhymeType, Sentence, SentencePattern, SentencesMatch, Tone, ToneMatch } from "types";
+import { PATTERN_WORD_WITH_PINYIN, PATTERN_ENDING_PUNC, PATTERN_PINYIN_TONE_NUM, PATTERN_SENTENCE_VARIANTS } from "regexps";
+import { PatternType, PoemKind, RhymeType, Sentence, SentenceVariant, Tone } from "types";
 
 export function makeSentences(sentences: string[]): Sentence[] {
     return sentences.map(s => {
@@ -38,7 +37,7 @@ export function makeSentences(sentences: string[]): Sentence[] {
 
 export function toneOfPinyin(pinyinOrNonZh: string): string {
     const toneNum = pinyinOrNonZh[pinyinOrNonZh.length - 1];
-    return toneNum == '1' || toneNum == '2' ? '平' : (toneNum == '3' || toneNum == '4' ? '仄' : pinyinOrNonZh);
+    return toneNum == '0' || toneNum == '1' || toneNum == '2' ? '平' : (toneNum == '3' || toneNum == '4' ? '仄' : '-');
 }
 
 export function matchTone(tone: string, composedTone: string): boolean {
@@ -50,82 +49,61 @@ export function needRhyme(rhymeType: string) {
 }
 
 /**
- * Return the modified copies of all the patterns and only the matched sentences.
+ * 绝句或律诗：首句起字和收字的平仄，词：首句最后一字的平仄。
  */
-export function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence[], kind: PoemKind): SentencesMatch {
-    const patternsResult = kind == PoemKind.CI ? sentPatterns : [...sentPatterns];
-    const sentsResult: Sentence[] = [];
-    const looseRhymeMatch = kind == PoemKind.CI;
-
-    let curRhymeGroup = null;
-    for (let i = 0; i < patternsResult.length; i++) {
-        const sentPattern = patternsResult[i];
-        let composedSent = composedSents[i];
-        // Break on unfinished sentence
-        if (!composedSent) {
-            break;
-        }
-        
-        // Shallow copy composed sentence for modification
-        composedSent = Object.assign({}, composedSent);
-
-        // Match sentence's rhyme only for complete sentence
-        if (composedSent.tones.length == sentPattern.tones.length) {
-            if (sentPattern.rhymeType == RhymeType.START) {
-                curRhymeGroup = getRhymeGroup(composedSent.rhyme);
-                composedSent.rhymed = true;
-            }
-            else if (sentPattern.rhymeType == RhymeType.CONTINUE) {
-                const rhymeGroup = getRhymeGroup(composedSent.rhyme);
-                composedSent.rhymed = curRhymeGroup != null && matchRhymeGroup(curRhymeGroup, rhymeGroup, looseRhymeMatch);
-            }
-        }
-
-        // Match sentence's tones
-        const tonesMatched = matchSentenceTones(sentPattern, composedSent);
-        composedSent.tonesMatched = tonesMatched.join('');
-
-        // Add modified sentence to result
-        sentsResult.push(composedSent);
-
-        // Break on sentence with wrong length
-        if ((i == composedSents.length - 1 && composedSent.tones.length > sentPattern.tones.length) ||
-            (i < composedSents.length - 1 && composedSent.tones.length != sentPattern.tones.length)) {
-            break;
-        }
-    }
-    return {
-        patterns: patternsResult,
-        sentences: sentsResult,
-    };
-}
-
-function matchSentenceTones(sentPattern: SentencePattern, composedSent: Sentence) {
-    const tonesMatched = [];
-    for (let i = 0; i < sentPattern.tones.length; i++) {
-        const tone = sentPattern.tones[i];
-        const composedTone = composedSent.tones[i];
-        // Break on unfinished sentence
-        if (!composedTone) {
-            break;
-        }
-
-        const toneOk = matchTone(tone, composedTone);
-        tonesMatched.push(toneOk ? ToneMatch.YES : ToneMatch.NO);
-    }
-    return tonesMatched;
+export function keyOfTones(tones: string, kind: PoemKind): string {
+    return kind == PoemKind.CI ? tones[tones.length - 1] : tones[1] + tones[tones.length - 1];
 }
 
 /**
- * Calculate score based on already matched sentences.
+ * The calculation is based on the variation's position in the variants file.
  */
-export function matchScore(sents: Sentence[]): number {
-    return sents.reduce((score, sent) => {
-        if (sent.tonesMatched) {
-            const tonesMatched = sent.tonesMatched.match(PATTERN_TONE_MATCHED)?.length ?? 0;
-            return tonesMatched && sent.rhymed == false ? score + tonesMatched - 1 : score + tonesMatched;
-        } else {
-            return score;
+export function variationType(normalTones: string, variationIndex: number): PatternType {
+    const normalFeet = normalTones.slice(-2);
+    if (normalFeet === Tone.PING+Tone.ZE) {
+        if (variationIndex === 0) {
+            return PatternType.MINOR;
         }
-    }, 0);
-}
+        if (variationIndex === 1) {
+            return PatternType.MAJOR;
+        }
+        if (variationIndex === 2) {
+            return PatternType.BOTH;
+        }
+    } else if (normalFeet === Tone.ZE+Tone.PING) {
+        if (variationIndex === 0) {
+            return PatternType.VARIATION;
+        }
+        if (variationIndex === 1) {
+            return PatternType.SINGLE;
+        }
+    }
+    return PatternType.VARIATION;
+  }
+  
+  export function needCounterpartCompensation(patternType: PatternType): boolean {
+    return patternType === PatternType.MAJOR || patternType === PatternType.BOTH;
+  }
+
+  export function extractSentenceVariants(s: string) {
+    const m = s.match(PATTERN_SENTENCE_VARIANTS);
+    if (m && m.groups) {
+        const normal = m.groups.normal;
+        const sVariants = m.groups.variants.split('/');
+        const counterpart = m.groups.counterpart;
+  
+        const variants: SentenceVariant[] = [];
+        for (let i = 0; i < sVariants.length; i++) {
+            const v = sVariants[i];
+            console.log(`${normal} variant ${i}: ${v}`);
+  
+            variants.push({
+              tones: v,
+              patternType: variationType(normal, i),
+              counterpart: counterpart,
+            });
+        }
+        return { normal, variants };
+    }
+    return {};
+  }

@@ -35,16 +35,32 @@ export enum RhymeType {
   NONE = '',
 }
 
+export enum PatternType {
+  NORMAL = "正格",
+  VARIATION = "变格",
+  SINGLE = "孤平",
+  MINOR = "小拗",
+  MAJOR = "大拗",
+  BOTH = "大小拗",
+}
+
 export type PoemHead = {
   kind: PoemKind; // 类型
   title: string; // 诗题或词牌名
   subtitle: string | undefined; // 词题
-};
+}
 
 export type SentencePattern = {
   tones: string;
   rhymeType: string;
   punctuation: string;
+  patternType: PatternType;
+}
+
+export type SentenceVariant = {
+  tones: string;
+  counterpart: string;
+  patternType: PatternType;
 }
 
 export type Sentence = {
