@@ -1,16 +1,16 @@
 ## Overview
 
-The main idea is to develop an `Obsidian` plugin which can facilitate the composition of Chinese traditional poems by instantly suggesting and validating the tones format and rhyming for each line of the poems. The supported poem types include Chinese traditional four-line poems, eight-line poems and ci poems.
+The main idea is to develop an `Obsidian` plugin which can facilitate the composition of Chinese traditional poems by instantly suggesting and validating the `tones` & `rhymes` patterns for each line of the poems. The supported poem types include Chinese traditional `four-line poems`, `eight-line poems` and `ci poems`.
 
 ## Commands
 
 The following commands will be provided by this plugin:
 
-### Insert Ci-Poem
+### Create Ci-Poem
 
-This command pops up a suggestions modal for the user to search a specific `tune`([[Obsidian Poems Plugin#Tune Search Suggestions]]), then inserts the code block of `poem` for the chosen `tune` at the cursor's position, containing a head line indicating the poem type.
+This command pops up a suggestions modal for the user to search a specific `tune`, then inserts the code block of `poem` for the chosen `tune` at the cursor's position, containing a head line indicating the poem type.
 
-### Insert Four-line or Eight-line Poem
+### Create Four-line or Eight-line Poem
 
 Each of these two commands inserts a code block of `poem` containing a head line indicating the poem type.
 
@@ -20,48 +20,22 @@ The basic look and feel of this plugin in different modes would be like:
 
 ### Tune Search Suggestions
 
-As used in the **Insert Ci-Poem** command, a suggestions modal will be shown for the user to search a specific `tune`. Thanks to `Obsidian`'s awesome API, fuzzy search is supported out of the box.
+As used in the **Create Ci-Poem** command, a suggestions modal will be shown for the user to search a specific `tune`.
+
+<img width="700" alt="ci-tune-search" src="https://github.com/user-attachments/assets/794a6417-a70b-4406-8261-88475a48edac">
 
 ### Editing Mode
 
-The Code Block syntax is used for editing poems.
+The Code Block syntax is used for editing poems. While editing the poem, a dialog will pop up and instantly suggest the most suitable `tones` & `rhymes` patterns and validate the inputted words against such patterns.
 
-> [!tip] Editing View
-> \```poem
-> 
-> 词牌: 菩萨蛮
-> 
-> 平林漠漠烟如织，寒山一带伤心碧。暝色入高楼，有人楼上愁。
-> 
-> 玉阶空伫立，宿鸟归飞急。何处是归程？长<span style="color:red">路</span>...
-> 
-> \```
+<img width="706" alt="poem-suggestion" src="https://github.com/user-attachments/assets/72575e14-b4c3-4def-a0b6-0714267621c1">
 
-> [!tip] Editior Suggestions
-> 
-> 菩萨蛮
-> 
-> <p style="color:green">中平中仄平平仄，中平中仄平平仄。中仄仄平平，中平中仄平。</p>
-> <p><span style="color:green">中平平仄仄，中仄中平仄。中仄仄平平，</span><span style="color:green">中</span><span style="color:red">平</span>中仄平。</p>
+We can even annotate a word with `pinyin` to handle special cases like polyphones.
+
+<img width="706" alt="poem-editing-pinyin" src="https://github.com/user-attachments/assets/90f55eee-e325-4556-9a02-4f06d90a9259">
 
 ### Reading Mode
 
-> [!tip] Reading View
-> 
-> <p style="font-weight: bold">菩萨蛮·无题</p>
-> <p style="">平林漠漠烟如织，寒山一带伤心碧。暝色入高楼，有人楼上愁。</p>
-> 
-> <p style="">玉阶空伫立，宿鸟归飞急。何处是归程？长亭更短亭。</p>
+The reading view just renders the poem using the proper format.
 
-👆🏻**Notes**:
-- ~~In `reading mode`, each word which does NOT comply with the expected tone of the tune should also be highlighted with some color like red.~~
-
-## Tunes Library
-
-All the local tunes are stored in the `txt` file shipped and updated along with the plugin.
-
-In the future, the following mechanisms may be provided:
-- a central library shall be maintained in the cloud and can be accessed via `http`.
-- local tunes can be automatically synced with the central library each time the plugin is loaded.
-- the user can add his or her own tunes locally.
-- the user can submitted his or her own tunes to the central library by some way.
+<img width="706" alt="poem-reading" src="https://github.com/user-attachments/assets/a2e4a8ef-7f3b-4f70-b2e2-2f311eeb1f40">
