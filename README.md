@@ -30,7 +30,7 @@ As used in the **Create Ci-Poem** command, a suggestions modal will be shown for
 
 The Code Block syntax is used for editing poems. While editing the poem, a dialog will pop up and instantly show the most suitable `tones` & `rhymes` patterns and validate the inputted words against such patterns.
 
-<img width="706" alt="poem-suggestion" src="https://github.com/user-attachments/assets/72575e14-b4c3-4def-a0b6-0714267621c1">
+<img width="706" alt="poem-editing" src="https://github.com/user-attachments/assets/e6cd23e2-9a1f-4231-847c-c13206a98d86">
 
 #### Pinyin Annotations
 
