@@ -1,6 +1,6 @@
 import { pinyin } from "pinyin-pro";
 import { PATTERN_WORD_WITH_PINYIN, PATTERN_ENDING_PUNC, PATTERN_PINYIN_TONE_NUM, PATTERN_SENTENCE_VARIANTS } from "regexps";
-import { PatternType, PoemKind, RhymeType, Sentence, SentenceVariant, Tone } from "types";
+import { PatternType, PoemKind, RhymeType, Sentence, SentencePattern, SentenceVariant, Tone, ToneMatch } from "types";
 
 export function makeSentences(sentences: string[]): Sentence[] {
     return sentences.map(s => {
@@ -40,6 +40,25 @@ export function toneOfPinyin(pinyinOrNonZh: string): string {
     return toneNum == '0' || toneNum == '1' || toneNum == '2' ? '平' : (toneNum == '3' || toneNum == '4' ? '仄' : '-');
 }
 
+/**
+ * Only do matching without changing the composed sentence for now.
+ */
+export function matchSentenceTones(sentPattern: SentencePattern, composedSent: Sentence) {
+    const tonesMatched = [];
+    for (let i = 0; i < sentPattern.tones.length; i++) {
+        const tone = sentPattern.tones[i];
+        const composedTone = composedSent.tones[i];
+        // Break on unfinished sentence
+        if (!composedTone) {
+            break;
+        }
+  
+        const toneOk = matchTone(tone, composedTone);
+        tonesMatched.push(toneOk ? ToneMatch.YES : ToneMatch.NO);
+    }
+    return tonesMatched;
+  }
+  
 export function matchTone(tone: string, composedTone: string): boolean {
     return tone == Tone.BOTH || tone == composedTone;
 }

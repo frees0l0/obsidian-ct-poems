@@ -1,7 +1,7 @@
 import { PoemKind, Sentence, Tune, TuneMatch, SentenceVariant, RhymeType, SentencePattern, SentencesMatch, ToneMatch } from "types";
 import { splitLines, extractSentencePatterns, splitSections } from "poemUtil";
 import { PATTERN_COLON, PATTERN_TONE_MATCHED } from "regexps";
-import { extractSentenceVariants, keyOfTones, matchTone } from "tones";
+import { extractSentenceVariants, keyOfTones, matchSentenceTones } from "tones";
 import { getRhymeGroup, matchRhymeGroup } from "rhymes";
 
 const ALL_TUNES = new Map<string, Tune[]>();
@@ -60,7 +60,7 @@ export function matchTunes(kind: PoemKind, name: string | undefined, composedSen
 
   const matches = tunes.map(tune => {
     const result = matchSentences(tune.sentencePatterns, composedSents, tune.kind);
-    const score = matchScore(result.sentences);
+    const score = computeScore(result.sentences);
     // Overwrite tune's props with matched result
     const tuneMatch: TuneMatch = Object.assign({}, tune, {
       sentencePatterns: result.patterns,
@@ -84,6 +84,7 @@ function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence
   const looseRhymeMatch = kind == PoemKind.CI;
 
   let curRhymeGroup = null;
+  let successiveTones = null;
   for (let i = 0; i < resultPatterns.length; i++) {
       const sentPattern = resultPatterns[i];
       let composedSent = composedSents[i];
@@ -92,6 +93,12 @@ function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence
           break;
       }
       
+      // Break on unmatched keys of tones only for first and complete sentence of four/eight-line poems
+      if (hasVariants && i == 0 && composedSent.tones.length == sentPattern.tones.length &&
+          keyOfTones(sentPattern.tones, kind) != keyOfTones(composedSent.tones, kind)) {
+        break;
+      }
+
       // Shallow copy composed sentence for modification
       composedSent = Object.assign({}, composedSent);
       
@@ -107,40 +114,46 @@ function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence
           }
       }
 
-      // Match sentence's tones with all normal & variant patterns
-      const vs = hasVariants ? (SENTENCE_VARIANTS.get(sentPattern.tones) ?? []) : [];
-      const vPatterns = vs.map(v => Object.assign({}, sentPattern, {tones: v.tones, patternType: v.patternType}));
-      const allPatterns = [sentPattern, ...vPatterns];
+      // Match sentence's tones with all normal & variant patterns or counterpart
+      let bestPattern, bestTonesMatched;
+      if (successiveTones) {
+        bestPattern = sentPattern;
+        bestTonesMatched = matchSentenceTones(bestPattern, composedSent);
+      }
+      else {
+        const vs = hasVariants ? (SENTENCE_VARIANTS.get(sentPattern.tones) ?? []) : [];
+        const vPatterns = vs.map(v => Object.assign({}, sentPattern, {tones: v.tones, patternType: v.patternType, counterpart: v.counterpart}));
+        const allPatterns = [sentPattern, ...vPatterns];
 
-      let bestIndex = -1, bestScore = 0, bestTonesMatched = null;
-      for (let i = 0; i < allPatterns.length; i++) {
-        const tonesMatched = matchSentenceTones(allPatterns[i], composedSent);
-        const score = tonesMatched.reduce((value, m) => value + (m == ToneMatch.YES ? 1 : 0), 0);
-        if (bestIndex == -1 || score > bestScore) {
-          bestIndex = i;
-          bestScore = score;
-          bestTonesMatched = tonesMatched;
+        let bestIndex = -1, bestScore = 0;
+        for (let i = 0; i < allPatterns.length; i++) {
+          const tonesMatched = matchSentenceTones(allPatterns[i], composedSent);
+          const score = tonesMatched.reduce((value, m) => value + (m == ToneMatch.YES ? 1 : 0), 0);
+          if (bestIndex == -1 || score > bestScore) {
+            bestIndex = i;
+            bestScore = score;
+            bestPattern = allPatterns[i];
+            bestTonesMatched = tonesMatched;
+          }
         }
       }
-      // Update best pattern to result
-      if (bestIndex != 0) {
-        const bestPattern = allPatterns[bestIndex];
+      
+      if (bestPattern) {
+        // Update matched pattern and counterpart (if specified) to result
         resultPatterns[i] = bestPattern;
-        console.info(`${composedSent.words}: ${sentPattern.tones} > ${bestPattern.tones}`)
+        successiveTones = bestPattern.counterpart;
+        if (successiveTones && i != resultPatterns.length - 1) {
+          resultPatterns[i+1] = Object.assign({}, resultPatterns[i+1], {tones: successiveTones});
+        }
+        // console.info(`${composedSent.words}: ${sentPattern.tones}>${bestPattern.tones}` + (successiveTones ? `-${successiveTones}` : ''));
+        // Add modified sentence to result
+        composedSent.tonesMatched = bestTonesMatched?.join('');
+        resultSents.push(composedSent);
       }
-      // Add modified sentence to result
-      composedSent.tonesMatched = bestTonesMatched?.join('');
-      resultSents.push(composedSent);
 
       // Break on unmatched sentence's lengths
       if ((i == composedSents.length - 1 && composedSent.tones.length > sentPattern.tones.length) ||
           (i < composedSents.length - 1 && composedSent.tones.length != sentPattern.tones.length)) {
-        break;
-      }
-
-      // Break on unmatched key of tones only for first and complete sentence of S4/S8 poems
-      if (hasVariants && i == 0 && composedSent.tones.length == sentPattern.tones.length &&
-          keyOfTones(sentPattern.tones, kind) != keyOfTones(composedSent.tones, kind)) {
         break;
       }
   }
@@ -151,28 +164,9 @@ function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence
 }
 
 /**
- * Only do matching without changing the composed sentence for now.
- */
-function matchSentenceTones(sentPattern: SentencePattern, composedSent: Sentence) {
-  const tonesMatched = [];
-  for (let i = 0; i < sentPattern.tones.length; i++) {
-      const tone = sentPattern.tones[i];
-      const composedTone = composedSent.tones[i];
-      // Break on unfinished sentence
-      if (!composedTone) {
-          break;
-      }
-
-      const toneOk = matchTone(tone, composedTone);
-      tonesMatched.push(toneOk ? ToneMatch.YES : ToneMatch.NO);
-  }
-  return tonesMatched;
-}
-
-/**
  * Calculate score based on already matched sentences.
  */
-function matchScore(sents: Sentence[]): number {
+function computeScore(sents: Sentence[]): number {
   return sents.reduce((score, sent) => {
       if (sent.tonesMatched) {
           const tonesMatched = sent.tonesMatched.match(PATTERN_TONE_MATCHED)?.length ?? 0;

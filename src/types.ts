@@ -55,6 +55,7 @@ export type SentencePattern = {
   rhymeType: string;
   punctuation: string;
   patternType: PatternType;
+  counterpart: string | undefined;
 }
 
 export type SentenceVariant = {

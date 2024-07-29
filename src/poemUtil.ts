@@ -113,6 +113,7 @@ export function extractSentencePatterns(line: string): SentencePattern[] {
             rhymeType: m.groups?.rhymeType ?? '',
             punctuation: m.groups?.punc ?? '',
             patternType: PatternType.NORMAL,
+            counterpart: undefined,
         }
     });
 }
