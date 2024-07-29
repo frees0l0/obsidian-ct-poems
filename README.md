@@ -1,6 +1,6 @@
 ## Overview
 
-The main idea is to develop an `Obsidian` plugin which can facilitate the creation of Chinese `ci poems` using the Code Block syntax.
+The main idea is to develop an `Obsidian` plugin which can facilitate the composition of Chinese traditional poems by instantly suggesting and validating the tones format and rhyming for each line of the poems. The supported poem types include Chinese traditional four-line poems, eight-line poems and ci poems.
 
 ## Commands
 
@@ -8,7 +8,11 @@ The following commands will be provided by this plugin:
 
 ### Insert Ci-Poem
 
-This command pops up a suggestions modal for the user to search a specific `tune`([[Ci-Poems Plugin#Tune Search Suggestions]]), then inserts the code block of `ci-poem` for the chosen `tune` at the cursor's position.
+This command pops up a suggestions modal for the user to search a specific `tune`([[Obsidian Poems Plugin#Tune Search Suggestions]]), then inserts the code block of `poem` for the chosen `tune` at the cursor's position, containing a head line indicating the poem type.
+
+### Insert Four-line or Eight-line Poem
+
+Each of these two commands inserts a code block of `poem` containing a head line indicating the poem type.
 
 ## Look & Feel
 
@@ -20,8 +24,10 @@ As used in the **Insert Ci-Poem** command, a suggestions modal will be shown for
 
 ### Editing Mode
 
+The Code Block syntax is used for editing poems.
+
 > [!tip] Editing View
-> \```ci-poem
+> \```poem
 > 
 > 词牌: 菩萨蛮
 > 
@@ -48,11 +54,11 @@ As used in the **Insert Ci-Poem** command, a suggestions modal will be shown for
 > <p style="">玉阶空伫立，宿鸟归飞急。何处是归程？长亭更短亭。</p>
 
 👆🏻**Notes**:
-- In `reading mode`, each word which does NOT comply with the expected tone of the tune should also be highlighted with some color like red.
+- ~~In `reading mode`, each word which does NOT comply with the expected tone of the tune should also be highlighted with some color like red.~~
 
 ## Tunes Library
 
-All the local tunes are stored in the `tunes.json` file shipped and updated along with the plugin.
+All the local tunes are stored in the `txt` file shipped and updated along with the plugin.
 
 In the future, the following mechanisms may be provided:
 - a central library shall be maintained in the cloud and can be accessed via `http`.
