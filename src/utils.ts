@@ -19,3 +19,20 @@ export async function verifyOrAddFrontMatter(
     });
     return locationAdded;
 }
+
+export function argmax<T>(arr: T[], fn: (o: T) => number): number {
+    if (arr.length == 0) {
+        return -1;
+    }
+
+    let maxIndex = 0;
+    let maxValue = fn(arr[0]);
+    for (let i = 1; i < arr.length; i++) {
+        const value = fn(arr[i]);
+        if (value > maxValue) {
+            maxIndex = i;
+            maxValue = value;
+        }
+    }
+    return maxIndex;
+}

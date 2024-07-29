@@ -3,6 +3,7 @@ import { splitLines, extractSentencePatterns, splitSections } from "poemUtil";
 import { PATTERN_COLON, PATTERN_TONE_MATCHED } from "regexps";
 import { extractSentenceVariants, keyOfTones, matchSentenceTones } from "tones";
 import { getRhymeGroup, matchRhymeGroup } from "rhymes";
+import { argmax } from "utils";
 
 const ALL_TUNES = new Map<string, Tune[]>();
 const SENTENCE_VARIANTS = new Map<string, SentenceVariant[]>();
@@ -93,6 +94,12 @@ function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence
           break;
       }
       
+      // Break on unmatched sentence's lengths
+      if ((i == composedSents.length - 1 && composedSent.tones.length > sentPattern.tones.length) ||
+          (i < composedSents.length - 1 && composedSent.tones.length != sentPattern.tones.length)) {
+        break;
+      }
+
       // Break on unmatched keys of tones only for first and complete sentence of four/eight-line poems
       if (hasVariants && i == 0 && composedSent.tones.length == sentPattern.tones.length &&
           keyOfTones(sentPattern.tones, kind) != keyOfTones(composedSent.tones, kind)) {
@@ -125,17 +132,10 @@ function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence
         const vPatterns = vs.map(v => Object.assign({}, sentPattern, {tones: v.tones, patternType: v.patternType, counterpart: v.counterpart}));
         const allPatterns = [sentPattern, ...vPatterns];
 
-        let bestIndex = -1, bestScore = 0;
-        for (let i = 0; i < allPatterns.length; i++) {
-          const tonesMatched = matchSentenceTones(allPatterns[i], composedSent);
-          const score = tonesMatched.reduce((value, m) => value + (m == ToneMatch.YES ? 1 : 0), 0);
-          if (bestIndex == -1 || score > bestScore) {
-            bestIndex = i;
-            bestScore = score;
-            bestPattern = allPatterns[i];
-            bestTonesMatched = tonesMatched;
-          }
-        }
+        const toneMatches = allPatterns.map(p => matchSentenceTones(p, composedSent))
+        const bestIndex = argmax(toneMatches, ms => ms.reduce((v, m) => v + (m == ToneMatch.YES ? 1 : 0), 0));
+        bestPattern = allPatterns[bestIndex];
+        bestTonesMatched = toneMatches[bestIndex];
       }
       
       if (bestPattern) {
@@ -149,12 +149,6 @@ function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence
         // Add modified sentence to result
         composedSent.tonesMatched = bestTonesMatched?.join('');
         resultSents.push(composedSent);
-      }
-
-      // Break on unmatched sentence's lengths
-      if ((i == composedSents.length - 1 && composedSent.tones.length > sentPattern.tones.length) ||
-          (i < composedSents.length - 1 && composedSent.tones.length != sentPattern.tones.length)) {
-        break;
       }
   }
   return {
