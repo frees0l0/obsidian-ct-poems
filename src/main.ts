@@ -6,6 +6,7 @@ import { renderPoem, insertPoemInEditor } from 'poemUtil';
 import { PoemCompositionHint } from 'PoemCompositionHint';
 import { verifyOrAddFrontMatter } from 'utils';
 import { getTunes, loadTunes, loadVariants } from 'tunes';
+import { switchRhymes } from 'rhymes';
 
 export default class CTPoemsPlugin extends Plugin {
   settings: PluginSettings;
@@ -13,6 +14,9 @@ export default class CTPoemsPlugin extends Plugin {
   async onload() {
     await this.loadSettings();
     await this.loadExtraData();
+
+    // Initialize with settings
+    switchRhymes(this.settings.rhymesType);
     
     // Add command for inserting a new poems
     this.addCommand({

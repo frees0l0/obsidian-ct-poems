@@ -1,10 +1,12 @@
 // Settings
 export interface PluginSettings {
-  showTonesInReading: boolean;
+  // showTonesInReading: boolean;
+  rhymesType: string
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
-  showTonesInReading: false,
+  // showTonesInReading: false,
+  rhymesType: 'std',
 };
 
 // Constants

@@ -41,7 +41,7 @@ class Rhymes {
 /**
  * 中华新韵
  */
-/* class ChineseNewRhymes extends Rhymes {
+class ChineseNewRhymes extends Rhymes {
     constructor() {
         super(
             [
@@ -65,7 +65,7 @@ class Rhymes {
             ]
         );
     }
-} */
+}
 
 /**
  * 中华通韵
@@ -100,12 +100,18 @@ class ChineseStandardRhymes extends Rhymes {
     }
 }
 
-const RHYMES = new ChineseStandardRhymes();
+const NEW_RHYMES = new ChineseNewRhymes()
+const STD_RHYMES = new ChineseStandardRhymes();
+let current = STD_RHYMES;
 
 export function getRhymeGroup(pinyinFinal: string): string {
-    return RHYMES.getRhymeGroup(pinyinFinal);
+    return current.getRhymeGroup(pinyinFinal);
 }
 
 export function matchRhymeGroup(r1: string, r2: string, looseMatch: boolean): boolean {
-    return RHYMES.matchRhymeGroup(r1, r2, looseMatch);
+    return current.matchRhymeGroup(r1, r2, looseMatch);
+}
+
+export function switchRhymes(type: string) {
+    current = type == 'new' ? NEW_RHYMES : STD_RHYMES;
 }
