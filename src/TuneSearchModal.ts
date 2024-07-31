@@ -8,6 +8,7 @@ export class TuneSearchModal extends FuzzySuggestModal<Tune> {
 
   constructor(app: App, editor: Editor) {
     super(app);
+    this.limit = 250;
     this.editor = editor;
   }
   

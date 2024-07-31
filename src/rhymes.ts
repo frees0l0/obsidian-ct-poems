@@ -30,7 +30,7 @@ class Rhymes {
             return true;
         }
 
-        if (looseMatch && this.looseRhymeMatches.find(m => r1 in m && r2 in m)) {
+        if (looseMatch && this.looseRhymeMatches.find(m => m.contains(r1) && m.contains(r2))) {
             return true;
         }
 
