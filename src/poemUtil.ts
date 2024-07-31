@@ -1,6 +1,7 @@
-import { PATTERN_PINYIN, PATTERN_POEM_HEAD, PATTERN_DOT, PATTERN_SENTENCE, PATTERN_SENTENCE_FULL, PATTERN_SECTION_SEP } from "regexps";
+import { PATTERN_PINYIN, PATTERN_POEM_HEAD, PATTERN_DOT, PATTERN_SENTENCE, PATTERN_SENTENCE_PATTERN, PATTERN_SECTION_SEP, PATTERN_SENTENCE_VARIANTS } from "regexps";
 import { Editor, MarkdownPostProcessorContext } from "obsidian";
-import { POEM_CODE_TAG, PatternType, PoemHead, PoemKind, SentencePattern } from "types";
+import { POEM_CODE_TAG, PatternType, PoemHead, PoemKind, SentencePattern, SentenceVariant } from "types";
+import { variationType } from "tones";
 
 export function getCodeBlock(head: PoemHead): string {
     const block = 
@@ -107,7 +108,7 @@ export function extractSentences(line: string): string[] {
 }
 
 export function extractSentencePatterns(line: string): SentencePattern[] {
-    return Array.from(line.matchAll(PATTERN_SENTENCE_FULL), m => {
+    return Array.from(line.matchAll(PATTERN_SENTENCE_PATTERN), m => {
         return {
             tones: m.groups?.words ?? '',
             rhymeType: m.groups?.rhymeType ?? '',
@@ -116,4 +117,27 @@ export function extractSentencePatterns(line: string): SentencePattern[] {
             counterpart: undefined,
         }
     });
+}
+
+export function extractSentenceVariants(s: string) {
+    const m = s.match(PATTERN_SENTENCE_VARIANTS);
+    if (m && m.groups) {
+        const normal = m.groups.normal;
+        const sVariants = m.groups.variants.split('/');
+        const counterpart = m.groups.counterpart;
+  
+        const variants: SentenceVariant[] = [];
+        for (let i = 0; i < sVariants.length; i++) {
+            const v = sVariants[i];
+            console.log(`${normal} variant ${i}: ${v}`);
+  
+            variants.push({
+              tones: v,
+              patternType: variationType(normal, i),
+              counterpart: counterpart,
+            });
+        }
+        return { normal, variants };
+    }
+    return {};
 }

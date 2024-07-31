@@ -56,6 +56,14 @@
     font-weight: bold;
 }
 
+.rhyme-new {
+    text-decoration: underline;
+}
+
+.rhyme-resume {
+    text-decoration: underline dotted;
+}
+
 .rhyme-error {
     background-color: yellow;
 }

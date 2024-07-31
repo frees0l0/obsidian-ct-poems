@@ -30,8 +30,21 @@ export enum ToneMatch {
 }
 
 export enum RhymeType {
-  START = '<',
-  CONTINUE = '>',
+  /**
+   * 押韵
+   */
+  REQUIRED = '>',
+  /**
+   * 换韵
+   */
+  NEW = '<',
+  /**
+   * 错叶韵
+   */
+  RESUME = '^',
+  /**
+   * 不押韵
+   */
   NONE = '',
 }
 

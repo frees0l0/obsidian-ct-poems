@@ -1,7 +1,7 @@
 import { PoemKind, Sentence, Tune, TuneMatch, SentenceVariant, RhymeType, SentencePattern, SentencesMatch, ToneMatch } from "types";
-import { splitLines, extractSentencePatterns, splitSections } from "poemUtil";
+import { extractSentencePatterns, extractSentenceVariants, splitLines, splitSections } from "poemUtil";
 import { PATTERN_COLON, PATTERN_TONE_MATCHED } from "regexps";
-import { extractSentenceVariants, keyOfTones, matchSentenceTones } from "tones";
+import { keyOfTones, matchSentenceTones } from "tones";
 import { getRhymeGroup, matchRhymeGroup } from "rhymes";
 import { argmax } from "utils";
 
@@ -84,7 +84,7 @@ function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence
   const resultSents: Sentence[] = [];
   const looseRhymeMatch = kind == PoemKind.CI;
 
-  let curRhymeGroup = null;
+  const rhymeGroups: string[] = [];
   let successiveTones = null;
   for (let i = 0; i < resultPatterns.length; i++) {
       const sentPattern = resultPatterns[i];
@@ -110,14 +110,21 @@ function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence
       composedSent = Object.assign({}, composedSent);
       
       // Match rhyme only for complete sentence
+      let curRhymeGroup;
       if (composedSent.tones.length == sentPattern.tones.length) {
-          if (sentPattern.rhymeType == RhymeType.START) {
-              curRhymeGroup = getRhymeGroup(composedSent.rhyme);
+          if (sentPattern.rhymeType == RhymeType.NEW || (sentPattern.rhymeType == RhymeType.REQUIRED && rhymeGroups.length == 0)) {
+              const rhymeGroup = getRhymeGroup(composedSent.rhyme);
+              rhymeGroups.push(rhymeGroup);
               composedSent.rhymed = true;
           }
-          else if (sentPattern.rhymeType == RhymeType.CONTINUE) {
+          else if (sentPattern.rhymeType == RhymeType.REQUIRED && (curRhymeGroup = rhymeGroups.at(-1))) {
               const rhymeGroup = getRhymeGroup(composedSent.rhyme);
-              composedSent.rhymed = curRhymeGroup != null && matchRhymeGroup(curRhymeGroup, rhymeGroup, looseRhymeMatch);
+              composedSent.rhymed = matchRhymeGroup(curRhymeGroup, rhymeGroup, looseRhymeMatch);
+          }
+          else if (sentPattern.rhymeType == RhymeType.RESUME && (curRhymeGroup = rhymeGroups.at(-2))) {
+            const rhymeGroup = getRhymeGroup(composedSent.rhyme);
+            rhymeGroups.push(curRhymeGroup);
+            composedSent.rhymed = matchRhymeGroup(curRhymeGroup, rhymeGroup, looseRhymeMatch);
           }
       }
 
@@ -138,18 +145,16 @@ function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence
         bestTonesMatched = toneMatches[bestIndex];
       }
       
-      if (bestPattern) {
-        // Update matched pattern and counterpart (if specified) to result
-        resultPatterns[i] = bestPattern;
-        successiveTones = bestPattern.counterpart;
-        if (successiveTones && i != resultPatterns.length - 1) {
-          resultPatterns[i+1] = Object.assign({}, resultPatterns[i+1], {tones: successiveTones});
-        }
-        // console.info(`${composedSent.words}: ${sentPattern.tones}>${bestPattern.tones}` + (successiveTones ? `-${successiveTones}` : ''));
-        // Add modified sentence to result
-        composedSent.tonesMatched = bestTonesMatched?.join('');
-        resultSents.push(composedSent);
+      // Update matched pattern and counterpart (if specified) to result
+      resultPatterns[i] = bestPattern;
+      successiveTones = bestPattern.counterpart;
+      if (successiveTones && i != resultPatterns.length - 1) {
+        resultPatterns[i+1] = Object.assign({}, resultPatterns[i+1], {tones: successiveTones});
       }
+      // console.info(`${composedSent.words}: ${sentPattern.tones}>${bestPattern.tones}` + (successiveTones ? `-${successiveTones}` : ''));
+      // Add modified sentence to result
+      composedSent.tonesMatched = bestTonesMatched?.join('');
+      resultSents.push(composedSent);
   }
   return {
       patterns: resultPatterns,

@@ -12,10 +12,10 @@ export const PATTERN_SECTION_SEP = /[\n|]/;
 export const PATTERN_ENDING_PUNC = /[、，：。！？]$/;
 export const PATTERN_ENDING_RHYME_PUNC = /(?<rhyme>[<>])?(?<punc>[、，：。！？])$/;
 
-// Full or partial sentence with optional punctuation
+// Full or partial composed sentence with optional punctuation
 export const PATTERN_SENTENCE = /[\p{L}0-4]+[、，：。！？]?/gu;
-// Full sentence with rhythm (optional) and punctuation
-export const PATTERN_SENTENCE_FULL = /(?<words>[\p{L}0-4]+)(?<rhymeType>[<>])?(?<punc>[、，：。！？])/gu;
+// Full sentence pattern with rhythm (optional) and punctuation
+export const PATTERN_SENTENCE_PATTERN = /(?<words>[\p{L}0-4]+)(?<rhymeType>[<>^])?(?<punc>[、，：。！？])/gu;
 // Sentence variants mapping
 export const PATTERN_SENTENCE_VARIANTS = /^(?<normal>\p{L}+)>(?<variants>[\p{L}/]+)(?:-(?<counterpart>\p{L}+))?$/u;
 

@@ -18,11 +18,11 @@ class Rhymes {
     }
 
     getRhymeGroup(pinyinFinal: string): string {
-        const group = this.rhymeGroupIndex[pinyinFinal] || "";
+        const group = this.rhymeGroupIndex[pinyinFinal];
         if (!group) {
             console.log(`Rhyme group not found: ${pinyinFinal}`);
         }
-        return group;
+        return group || '-';
     }
 
     matchRhymeGroup(r1: string, r2: string, looseMatch: boolean): boolean {

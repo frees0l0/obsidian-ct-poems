@@ -1,8 +1,8 @@
 import { App, Editor, EditorPosition, EditorSuggest, EditorSuggestContext, EditorSuggestTriggerInfo, TFile } from 'obsidian';
-import { TuneMatch, Sentence, SentencePattern, ToneMatch, PoemKind } from 'types';
+import { TuneMatch, Sentence, SentencePattern, ToneMatch, PoemKind, RhymeType } from 'types';
 import { extractHead, isCodeBlockBoundary, splitLines, extractSentences } from 'poemUtil';
 import { matchTunes } from 'tunes';
-import { makeSentences } from 'tones';
+import { makeSentences, needRhyme } from 'tones';
 
 const MAX_PEEK_LINES = 100;
 
@@ -89,18 +89,27 @@ export class PoemCompositionHint extends EditorSuggest<TuneMatch> {
         const composedTones = composedSent?.tones ?? '';
         const tonesMatched = composedSent?.tonesMatched ?? '';
         for (let i = 0; i < tones.length; i++) {
-            // Tones.length >= composedTones.length as composed tones may have not been finished
+            // Decoration based on rhyme type
+            const rhymeNeeded = i == tones.length - 1 && needRhyme(sent.rhymeType);
+            const cls = [];
+            if (rhymeNeeded) {
+                cls.push('rhyme');
+                if (sent.rhymeType == RhymeType.NEW) {
+                    cls.push('rhyme-new');
+                }
+                else if (sent.rhymeType == RhymeType.RESUME) {
+                    cls.push('rhyme-resume');
+                }
+            }
+            // The composed tones may have not been finished
             if (!composedSent || !composedTones[i]) {
-                el.createSpan({ text: tones[i] });
+                el.createSpan({ text: tones[i], cls: cls });
             }
             else {
+                // Decoration based on tone & rhyme matching
                 const toneOk = tonesMatched[i] == ToneMatch.YES;
-                const rhymeNeeded = i == tones.length - 1 && composedSent.rhymed != undefined;
                 const rhymeOk = !rhymeNeeded || composedSent.rhymed;
-                const cls = toneOk ? ['tone-success'] : ['tone-error'];
-                if (rhymeNeeded) {
-                    cls.push('rhyme')
-                }
+                cls.push(toneOk ? 'tone-success' : 'tone-error');
                 if (!rhymeOk) {
                     cls.push('rhyme-error')
                 }

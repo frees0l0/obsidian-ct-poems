@@ -1,6 +1,6 @@
 import { pinyin } from "pinyin-pro";
-import { PATTERN_WORD_WITH_PINYIN, PATTERN_ENDING_PUNC, PATTERN_PINYIN_TONE_NUM, PATTERN_SENTENCE_VARIANTS } from "regexps";
-import { PatternType, PoemKind, RhymeType, Sentence, SentencePattern, SentenceVariant, Tone, ToneMatch } from "types";
+import { PATTERN_WORD_WITH_PINYIN, PATTERN_ENDING_PUNC, PATTERN_PINYIN_TONE_NUM } from "regexps";
+import { PatternType, PoemKind, RhymeType, Sentence, SentencePattern, Tone, ToneMatch } from "types";
 
 export function makeSentences(sentences: string[]): Sentence[] {
     return sentences.map(s => {
@@ -64,7 +64,7 @@ export function matchTone(tone: string, composedTone: string): boolean {
 }
 
 export function needRhyme(rhymeType: string) {
-    return rhymeType == RhymeType.START || rhymeType == RhymeType.CONTINUE;
+    return rhymeType == RhymeType.REQUIRED || rhymeType == RhymeType.NEW || rhymeType == RhymeType.RESUME;
 }
 
 /**
@@ -100,29 +100,6 @@ export function variationType(normalTones: string, variationIndex: number): Patt
     return PatternType.VARIATION;
   }
   
-  export function needCounterpartCompensation(patternType: PatternType): boolean {
+export function needCounterpartCompensation(patternType: PatternType): boolean {
     return patternType === PatternType.MAJOR || patternType === PatternType.BOTH;
-  }
-
-  export function extractSentenceVariants(s: string) {
-    const m = s.match(PATTERN_SENTENCE_VARIANTS);
-    if (m && m.groups) {
-        const normal = m.groups.normal;
-        const sVariants = m.groups.variants.split('/');
-        const counterpart = m.groups.counterpart;
-  
-        const variants: SentenceVariant[] = [];
-        for (let i = 0; i < sVariants.length; i++) {
-            const v = sVariants[i];
-            console.log(`${normal} variant ${i}: ${v}`);
-  
-            variants.push({
-              tones: v,
-              patternType: variationType(normal, i),
-              counterpart: counterpart,
-            });
-        }
-        return { normal, variants };
-    }
-    return {};
-  }
+}
