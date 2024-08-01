@@ -1,5 +1,5 @@
 {
-	"name": "obsidian-ct-poems",
+	"name": "chinese-poems",
 	"version": "1.0.1",
 	"description": "Plugin for the composition of Chinese traditional poems",
 	"main": "main.js",
