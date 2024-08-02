@@ -109,7 +109,11 @@ export type Tune = {
    * 包含各段句子数量的数组
    */
   sections: number[];
-};
+  /**
+   * 描述
+   */
+  desc: string | undefined;
+}
 
 export type TuneMatch = {
   /**
@@ -121,3 +125,9 @@ export type TuneMatch = {
    */
   score: number;
 } & Tune;
+
+export interface TuneData {
+  name: string;
+  patterns: string[];
+  desc: string | undefined
+}

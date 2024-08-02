@@ -65,6 +65,10 @@ export class PoemCompositionHint extends EditorSuggest<TuneMatch> {
         const title = tune.kind == PoemKind.CI ? tune.name: tune.kind;
         el.createDiv({ text: title, cls: 'tune-title' });
 
+        if (tune.desc) {
+            el.createDiv({text: tune.desc, cls: 'tune-line'});
+        }
+
         const sents = tune.sentencePatterns;
         const composedSents = tune.composedSentences;
         const sections = tune.sections;

@@ -1,5 +1,5 @@
-import { Plugin, normalizePath } from 'obsidian';
-import { PluginSettings, DEFAULT_SETTINGS, POEM_CODE_TAG, POEMS_FRONT_MATTER, PoemKind } from 'types';
+import { Plugin } from 'obsidian';
+import { PluginSettings, DEFAULT_SETTINGS, POEM_CODE_TAG, POEMS_FRONT_MATTER, PoemKind, TuneData } from 'types';
 import { PoemsSettingTab } from 'PoemsSettingTab';
 import { TuneSearchModal } from 'TuneSearchModal';
 import { renderPoem, insertPoemInEditor } from 'poemUtil';
@@ -7,6 +7,8 @@ import { PoemCompositionHint } from 'PoemCompositionHint';
 import { verifyOrAddFrontMatter } from 'utils';
 import { getTunes, loadTunes, loadVariants } from 'tunes';
 import { switchRhymes } from 'rhymes';
+import { S4_PATTERNS, S8_PATTERNS, SENTENCE_VARIANTS } from 'poemPatterns';
+import { CI_PATTERNS } from 'ciPatterns';
 
 export default class CTPoemsPlugin extends Plugin {
   settings: PluginSettings;
@@ -86,25 +88,23 @@ export default class CTPoemsPlugin extends Plugin {
 
   async loadExtraData() {
     const configs = [
-      [PoemKind.S4, 's4Patterns.txt'],
-      [PoemKind.S8, 's8Patterns.txt'],
-      [PoemKind.CI, 'ciPatterns.txt'],
+      [PoemKind.S4, S4_PATTERNS],
+      [PoemKind.S8, S8_PATTERNS],
+      [PoemKind.CI, CI_PATTERNS],
     ];
 
     for (const config of configs) {
       try {
-        const file = normalizePath(`${this.manifest.dir}/${config[1]}`);
-        const content = await this.app.vault.adapter.read(file);
-        loadTunes(config[0] as PoemKind, content);
+        const kind = config[0] as PoemKind;
+        const tuneDatas = config[1] as TuneData[];
+        loadTunes(kind, tuneDatas);
       } catch (error) {
         console.error(`Failed to load tunes of ${config[0]}`, error);
       }
     }
 
     try {
-      const file = normalizePath(`${this.manifest.dir}/variants.txt`);
-      const content = await this.app.vault.adapter.read(file);
-      loadVariants(content);
+      loadVariants(SENTENCE_VARIANTS);
     } catch (error) {
       console.error(`Failed to load variants`, error);
     }
