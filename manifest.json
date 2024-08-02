@@ -1,7 +1,7 @@
 {
 	"id": "chinese-poems",
 	"name": "Chinese Poems",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"minAppVersion": "0.15.0",
 	"description": "中国传统格律诗词创作助手",
 	"author": "frees0l0",
