@@ -21,7 +21,7 @@ export default class CTPoemsPlugin extends Plugin {
     // Add command for inserting a new poems
     this.addCommand({
       id: 'add-four-line-poem',
-      name: 'Create Four-line Poem (创作绝句)',
+      name: 'Create four-line poem (创作绝句)',
       editorCallback: (editor, view) => {
         if (view.file) {
           verifyOrAddFrontMatter(this.app, view.file, POEMS_FRONT_MATTER, '');
@@ -35,7 +35,7 @@ export default class CTPoemsPlugin extends Plugin {
 
     this.addCommand({
       id: 'add-eight-line-poem',
-      name: 'Create Eight-line Poem (创作律诗)',
+      name: 'Create eight-line poem (创作律诗)',
       editorCallback: (editor, view) => {
         if (view.file) {
           verifyOrAddFrontMatter(this.app, view.file, POEMS_FRONT_MATTER, '');
@@ -49,7 +49,7 @@ export default class CTPoemsPlugin extends Plugin {
     
     this.addCommand({
       id: 'add-ci-poem',
-      name: 'Create Ci Poem (填写词牌)',
+      name: 'Create ci poem (填写词牌)',
       editorCallback: (editor, view) => {
         if (view.file) {
           verifyOrAddFrontMatter(this.app, view.file, POEMS_FRONT_MATTER, '');
