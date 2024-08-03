@@ -1,12 +1,13 @@
 // Settings
 export interface PluginSettings {
-  // showTonesInReading: boolean;
   rhymesType: string
+  showDescInEditing: boolean;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
   // showTonesInReading: false,
   rhymesType: 'std',
+  showDescInEditing: true,
 };
 
 // Constants
@@ -60,9 +61,18 @@ export enum PatternType {
 }
 
 export type PoemHead = {
-  kind: PoemKind; // 类型
-  title: string; // 诗题或词牌名
-  subtitle: string | undefined; // 词题
+  /**
+   * 类型
+   */
+  kind: PoemKind;
+  /**
+   * 词牌名或空
+   */
+  name: string;
+  /**
+   * 标题
+   */
+  title: string;
 }
 
 export type SentencePattern = {
@@ -83,6 +93,7 @@ export type Sentence = {
   words: string;
   tones: string;
   rhyme: string;
+  punctuation: string;
   rhymed: boolean | undefined;
   tonesMatched: string | undefined;
 }

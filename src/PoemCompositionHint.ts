@@ -1,5 +1,5 @@
 import { App, Editor, EditorPosition, EditorSuggest, EditorSuggestContext, EditorSuggestTriggerInfo, TFile } from 'obsidian';
-import { TuneMatch, Sentence, SentencePattern, ToneMatch, PoemKind, RhymeType } from 'types';
+import { TuneMatch, Sentence, SentencePattern, ToneMatch, PoemKind, RhymeType, PluginSettings } from 'types';
 import { extractHead, isCodeBlockBoundary, splitLines, extractSentences } from 'poemUtil';
 import { matchTunes } from 'tunes';
 import { makeSentences, needRhyme } from 'tones';
@@ -7,8 +7,11 @@ import { makeSentences, needRhyme } from 'tones';
 const MAX_PEEK_LINES = 100;
 
 export class PoemCompositionHint extends EditorSuggest<TuneMatch> {
-    constructor(app: App) {
+    private settings;
+
+    constructor(app: App, settings: PluginSettings) {
         super(app);
+        this.settings = settings;
     }
 
     onTrigger(cursor: EditorPosition, editor: Editor, file: TFile): EditorSuggestTriggerInfo | null {
@@ -52,36 +55,33 @@ export class PoemCompositionHint extends EditorSuggest<TuneMatch> {
             return [];
         }
 
-        const kind = head.kind;
-        const title = head.title;
+        const { kind, name } = head;
         const raws = lines.slice(1).flatMap(line => extractSentences(line));
         const sents = makeSentences(raws);
-        return matchTunes(kind, title, sents);
+        return matchTunes(kind, name, sents);
     }
 
     renderSuggestion(tune: TuneMatch, el: HTMLElement) {
         el = el.createDiv( {cls: 'tune'} )
 
-        const title = tune.kind == PoemKind.CI ? tune.name: tune.kind;
-        el.createDiv({ text: title, cls: 'tune-title' });
+        const name = tune.kind == PoemKind.CI ? tune.name: tune.kind;
+        el.createDiv({ text: name, cls: 'tune-title' });
 
-        if (tune.desc) {
-            el.createDiv({text: tune.desc, cls: 'tune-line'});
+        if (this.settings.showDescInEditing && tune.desc) {
+            el.createDiv({text: tune.desc, cls: 'tune-section'});
         }
 
-        const sents = tune.sentencePatterns;
-        const composedSents = tune.composedSentences;
-        const sections = tune.sections;
+        const { sentencePatterns, composedSentences, sections} = tune;
         let sectionStart = 0;
         for (let i = 0; i < sections.length; i++) {
             const sectionEnd = sectionStart + sections[i];
-            this.renderSectionTones(el, sents.slice(sectionStart, sectionEnd), composedSents.slice(sectionStart, sectionEnd))
+            this.renderSectionTones(el, sentencePatterns.slice(sectionStart, sectionEnd), composedSentences.slice(sectionStart, sectionEnd))
             sectionStart = sectionEnd;
         }
     }
 
     renderSectionTones(el: HTMLElement, sents: SentencePattern[], composedSents: Sentence[]) {
-        const lineEl = el.createDiv({ cls: 'tune-line' });
+        const lineEl = el.createDiv({ cls: 'tune-section' });
         for (let i = 0; i < sents.length; i++) {
             this.renderSentenceTones(lineEl, sents[i], composedSents[i]);
         }

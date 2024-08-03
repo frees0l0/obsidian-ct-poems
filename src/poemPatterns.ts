@@ -30,7 +30,7 @@ export const S8_PATTERNS = [
     }
 ];
 
-export const SENTENCE_VARIANTS = [
+export const VARIANTS_PATTERNS = [
     // 五言平仄脚：小拗救/大拗救/大小拗救（对句拗救）
     "中仄平平仄>中仄仄平仄/中仄平仄仄/中仄仄仄仄-中平平仄平",
     // 五言平平脚：基本变格

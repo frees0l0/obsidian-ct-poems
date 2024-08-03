@@ -7,7 +7,7 @@ export function getCodeBlock(head: PoemHead): string {
     const block = 
 `\`\`\`${POEM_CODE_TAG}
 
-${head.kind}: ${head.title}
+${head.kind}: ${head.name}
 
 
 
@@ -25,10 +25,11 @@ export function renderPoem(source: string, el: HTMLElement, ctx: MarkdownPostPro
         const row = rows[i];
         const head = extractHead(row);
         if (head) {
-            const title = head.subtitle ? `${head.title}·${head.subtitle}` : head.title;
+            const { kind, name, title } = head;
+            const nameAndTitle = [name, title].filter(s => s).join('·');
             const headEl = div.createDiv({ cls: "poem-head" });
-            headEl.createSpan({ text: title, cls: "poem-title" });
-            headEl.createSpan({ text: head.kind, cls: "poem-kind" });
+            headEl.createSpan({ text: nameAndTitle, cls: "poem-title" });
+            headEl.createSpan({ text: kind, cls: "poem-kind" });
         } else {
             div.createDiv({ text: row, cls: "poem-line" });
         }
@@ -63,19 +64,27 @@ export function extractHead(row: string): PoemHead | null {
         return null;
     }
     
-    let title = match.groups.title ?? '无题';
-    let subtitle;
+    let name, title;
+    const info = match.groups.info;
     if (kind == PoemKind.CI) {
-        const parts = title.split(PATTERN_DOT);
+        const parts = info.split(PATTERN_DOT);
         if (parts.length > 1) {
-            title = parts[0];
-            subtitle = parts[1];
+            name = parts[0];
+            title = parts[1];
         }
+        else {
+            name = info;
+            title = '';
+        }
+    }
+    else {
+        name = '';
+        title = info || '无题';
     }
     return {
         kind: kind,
+        name: name,
         title: title,
-        subtitle: subtitle,
     };
 }
 
@@ -129,7 +138,7 @@ export function extractSentenceVariants(s: string) {
         const variants: SentenceVariant[] = [];
         for (let i = 0; i < sVariants.length; i++) {
             const v = sVariants[i];
-            console.log(`${normal} variant ${i}: ${v}`);
+            // console.log(`${normal} variant ${i}: ${v}`);
   
             variants.push({
               tones: v,

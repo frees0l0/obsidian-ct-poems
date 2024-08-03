@@ -32,6 +32,11 @@ export function getTunes(kind: PoemKind): Tune[] {
   return ALL_TUNES.get(kind) || [];
 }
 
+export function getTune(kind: PoemKind, name: string | undefined): Tune | undefined {
+  const tunes = ALL_TUNES.get(kind) || [];
+  return name ? tunes.find(e => e.name == name) : tunes[0];
+}
+
 export function matchTunes(kind: PoemKind, name: string | undefined, composedSents: Sentence[], maxCount = 2): TuneMatch[] {
   let tunes = getTunes(kind);
   if (kind == PoemKind.CI) {

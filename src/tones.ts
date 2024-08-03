@@ -5,7 +5,11 @@ import { PatternType, PoemKind, RhymeType, Sentence, SentencePattern, Tone, Tone
 export function makeSentences(sentences: string[]): Sentence[] {
     return sentences.map(s => {
         // Remove ending punctuation if present
-        s = s.replace(PATTERN_ENDING_PUNC, '');
+        const m = s.match(PATTERN_ENDING_PUNC);
+        if (m) {
+            s = s.replace(PATTERN_ENDING_PUNC, '');
+        }
+        const punc = m?.groups?.punc ?? '';
         // Extract words with pinyin annotations
         const annotatedWords = Array.from(s.matchAll(PATTERN_WORD_WITH_PINYIN), m => {
             return {
@@ -29,6 +33,7 @@ export function makeSentences(sentences: string[]): Sentence[] {
             words: words,
             tones: tones,
             rhyme: rhyme,
+            punctuation: punc,
             rhymed: undefined,
             tonesMatched: undefined,
         }

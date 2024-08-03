@@ -28,6 +28,6 @@ export class TuneSearchModal extends FuzzySuggestModal<Tune> {
   }
 
   onChooseItem(tune: Tune, evt: MouseEvent | KeyboardEvent) {
-    insertPoemInEditor({ kind: tune.kind, title: tune.name, subtitle: undefined }, this.editor);
+    insertPoemInEditor({ kind: tune.kind, name: tune.name, title: '' }, this.editor);
   }
 }

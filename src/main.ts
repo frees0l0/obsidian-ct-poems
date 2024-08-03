@@ -7,7 +7,7 @@ import { PoemCompositionHint } from 'PoemCompositionHint';
 import { verifyOrAddFrontMatter } from 'utils';
 import { getTunes, loadTunes, loadVariants } from 'tunes';
 import { switchRhymes } from 'rhymes';
-import { S4_PATTERNS, S8_PATTERNS, SENTENCE_VARIANTS } from 'poemPatterns';
+import { S4_PATTERNS, S8_PATTERNS, VARIANTS_PATTERNS } from 'poemPatterns';
 import { CI_PATTERNS } from 'ciPatterns';
 
 export default class CTPoemsPlugin extends Plugin {
@@ -30,7 +30,7 @@ export default class CTPoemsPlugin extends Plugin {
         }
         const tune = getTunes(PoemKind.S4)[0];
         if (tune) {
-          insertPoemInEditor({ kind: tune.kind, title: tune.name, subtitle: undefined }, editor);
+          insertPoemInEditor({ kind: tune.kind, name: tune.name, title: '' }, editor);
         }
       }
     });
@@ -44,7 +44,7 @@ export default class CTPoemsPlugin extends Plugin {
         }
         const tune = getTunes(PoemKind.S8)[0];
         if (tune) {
-          insertPoemInEditor({ kind: tune.kind, title: tune.name, subtitle: undefined }, editor);
+          insertPoemInEditor({ kind: tune.kind, name: tune.name, title: '' }, editor);
         }
       }
     });
@@ -64,7 +64,7 @@ export default class CTPoemsPlugin extends Plugin {
     this.registerMarkdownCodeBlockProcessor(POEM_CODE_TAG, renderPoem);
 
     // Add hint for the composed tune
-    this.registerEditorSuggest(new PoemCompositionHint(this.app));
+    this.registerEditorSuggest(new PoemCompositionHint(this.app, this.settings));
 
     // This adds a settings tab so the user can configure various aspects of the plugin
     this.addSettingTab(new PoemsSettingTab(this.app, this));
@@ -104,7 +104,7 @@ export default class CTPoemsPlugin extends Plugin {
     }
 
     try {
-      loadVariants(SENTENCE_VARIANTS);
+      loadVariants(VARIANTS_PATTERNS);
     } catch (error) {
       console.error(`Failed to load variants`, error);
     }
