@@ -1,4 +1,4 @@
-import { PoemKind, RhymeType, Sentence, SentenceVariant, SentencePattern, SentencesMatch, TuneMatch, ToneMatch, Tune, TuneData } from "types";
+import { PoemKind, RhymeType, Sentence, SentenceVariant, SentencePattern, SentencesMatch, TuneMatch, ToneMatch, Tune, TuneData, PoemHead } from "types";
 import { extractSentencePatterns, extractSentenceVariants, splitSections } from "poemUtil";
 import { PATTERN_TONE_MATCHED } from "regexps";
 import { keyOfTones, matchSentenceTones } from "tones";
@@ -37,7 +37,8 @@ export function getTune(kind: PoemKind, name: string | undefined): Tune | undefi
   return name ? tunes.find(e => e.name == name) : tunes[0];
 }
 
-export function matchTunes(kind: PoemKind, name: string | undefined, composedSents: Sentence[], maxCount = 2): TuneMatch[] {
+export function matchTunes(head: PoemHead, composedSents: Sentence[], composedParagraphs: number[], maxCount = 2): TuneMatch[] {
+  const { kind, name, title } = head;
   let tunes = getTunes(kind);
   if (kind == PoemKind.CI) {
     tunes = tunes.filter(tune => tune.name == name);
@@ -48,8 +49,10 @@ export function matchTunes(kind: PoemKind, name: string | undefined, composedSen
     const score = computeScore(result.sentences);
     // Overwrite tune's props with matched result
     const tuneMatch: TuneMatch = Object.assign({}, tune, {
+      title: title,
       sentencePatterns: result.patterns,
       composedSentences: result.sentences,
+      composedParagraphs: composedParagraphs,
       score: score,
     });
     return tuneMatch;
@@ -168,6 +171,7 @@ function buildTune(kind: PoemKind, name: string, tones: string, desc: string | u
   return {
     kind: kind,
     name: name,
+    title: '',
     sentencePatterns: sents,
     sections: lensOfSections,
     desc: desc,

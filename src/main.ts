@@ -2,13 +2,14 @@ import { Plugin } from 'obsidian';
 import { PluginSettings, DEFAULT_SETTINGS, POEM_CODE_TAG, POEMS_FRONT_MATTER, PoemKind, TuneData } from 'types';
 import { PoemsSettingTab } from 'PoemsSettingTab';
 import { TuneSearchModal } from 'TuneSearchModal';
-import { renderPoem, insertPoemInEditor } from 'poemUtil';
+import { insertPoemInEditor } from 'poemUtil';
 import { PoemCompositionHint } from 'PoemCompositionHint';
 import { verifyOrAddFrontMatter } from 'utils';
 import { getTunes, loadTunes, loadVariants } from 'tunes';
 import { switchRhymes } from 'rhymes';
 import { S4_PATTERNS, S8_PATTERNS, VARIANTS_PATTERNS } from 'poemPatterns';
 import { CI_PATTERNS } from 'ciPatterns';
+import { renderPoem } from 'renderer';
 
 export default class CTPoemsPlugin extends Plugin {
   settings: PluginSettings;

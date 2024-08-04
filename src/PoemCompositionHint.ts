@@ -1,8 +1,8 @@
 import { App, Editor, EditorPosition, EditorSuggest, EditorSuggestContext, EditorSuggestTriggerInfo, TFile } from 'obsidian';
-import { TuneMatch, Sentence, SentencePattern, ToneMatch, PoemKind, RhymeType, PluginSettings } from 'types';
-import { extractHead, isCodeBlockBoundary, splitLines, extractSentences } from 'poemUtil';
+import { TuneMatch, PluginSettings } from 'types';
+import { extractHead, isCodeBlockBoundary, extractPoem } from 'poemUtil';
 import { matchTunes } from 'tunes';
-import { makeSentences, needRhyme } from 'tones';
+import { renderTuneSuggestion } from 'renderer';
 
 const MAX_PEEK_LINES = 100;
 
@@ -49,78 +49,12 @@ export class PoemCompositionHint extends EditorSuggest<TuneMatch> {
     }
 
     async getSuggestions(context: EditorSuggestContext): Promise<TuneMatch[]> {
-        const lines = splitLines(context.query, false);
-        const head = extractHead(lines[0]);
-        if (!head) {
-            return [];
-        }
-
-        const { kind, name } = head;
-        const raws = lines.slice(1).flatMap(line => extractSentences(line));
-        const sents = makeSentences(raws);
-        return matchTunes(kind, name, sents);
+        const poem = extractPoem(context.query);
+        return poem ? matchTunes(poem.head, poem.sentences, poem.paragraphs) : [];
     }
 
     renderSuggestion(tune: TuneMatch, el: HTMLElement) {
-        el = el.createDiv( {cls: 'tune'} )
-
-        const name = tune.kind == PoemKind.CI ? tune.name: tune.kind;
-        el.createDiv({ text: name, cls: 'tune-title' });
-
-        if (this.settings.showDescInEditing && tune.desc) {
-            el.createDiv({text: tune.desc, cls: 'tune-section'});
-        }
-
-        const { sentencePatterns, composedSentences, sections} = tune;
-        let sectionStart = 0;
-        for (let i = 0; i < sections.length; i++) {
-            const sectionEnd = sectionStart + sections[i];
-            this.renderSectionTones(el, sentencePatterns.slice(sectionStart, sectionEnd), composedSentences.slice(sectionStart, sectionEnd))
-            sectionStart = sectionEnd;
-        }
-    }
-
-    renderSectionTones(el: HTMLElement, sents: SentencePattern[], composedSents: Sentence[]) {
-        const lineEl = el.createDiv({ cls: 'tune-section' });
-        for (let i = 0; i < sents.length; i++) {
-            this.renderSentenceTones(lineEl, sents[i], composedSents[i]);
-        }
-    }
-
-    renderSentenceTones(el: HTMLElement, sent: SentencePattern, composedSent: Sentence | undefined) {
-        // console.info('renderSentenceTones', sent.tones, composedSent?.tones);
-        const tones = sent.tones;
-        const composedTones = composedSent?.tones ?? '';
-        const tonesMatched = composedSent?.tonesMatched ?? '';
-        for (let i = 0; i < tones.length; i++) {
-            // Decoration based on rhyme type
-            const rhymeNeeded = i == tones.length - 1 && needRhyme(sent.rhymeType);
-            const cls = [];
-            if (rhymeNeeded) {
-                cls.push('rhyme');
-                if (sent.rhymeType == RhymeType.NEW) {
-                    cls.push('rhyme-new');
-                }
-                else if (sent.rhymeType == RhymeType.RESUME) {
-                    cls.push('rhyme-resume');
-                }
-            }
-            // The composed tones may have not been finished
-            if (!composedSent || !composedTones[i]) {
-                el.createSpan({ text: tones[i], cls: cls });
-            }
-            else {
-                // Decoration based on tone & rhyme matching
-                const toneOk = tonesMatched[i] == ToneMatch.YES;
-                const rhymeOk = !rhymeNeeded || composedSent.rhymed;
-                cls.push(toneOk ? 'tone-success' : 'tone-error');
-                if (!rhymeOk) {
-                    cls.push('rhyme-error')
-                }
-                el.createSpan({ text: tones[i], cls: cls});
-            }
-        }
-        el.createSpan( {text: sent.punctuation} );
+        renderTuneSuggestion(tune, el);
     }
     
     async selectSuggestion(value: TuneMatch, evt: MouseEvent | KeyboardEvent) {

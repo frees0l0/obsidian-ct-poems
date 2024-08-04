@@ -105,32 +105,28 @@ export type SentencesMatch = {
 
 export type Tune = {
   /**
-   * 类型
-   */
-  kind: PoemKind;
-  /**
-   * 词牌名或空
-   */
-  name: string;
-  /**
    * 包含每个句子平仄的数组
    */
   sentencePatterns: SentencePattern[];
   /**
-   * 包含各段句子数量的数组
+   * 包含各部分(阕)句子数量的数组
    */
   sections: number[];
   /**
    * 描述
    */
   desc: string | undefined;
-}
+} & PoemHead;
 
 export type TuneMatch = {
   /**
-   * 包含每个句子填词平仄的数组
+   * 包含每个句子的数组
    */
   composedSentences: Sentence[];
+  /**
+   * 包含各段(排版时放在同一行)句子数量的数组
+   */
+  composedParagraphs: number[];
   /**
    * 匹配字数
    */

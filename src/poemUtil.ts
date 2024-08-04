@@ -1,7 +1,7 @@
-import { PATTERN_PINYIN, PATTERN_POEM_HEAD, PATTERN_DOT, PATTERN_SENTENCE, PATTERN_SENTENCE_PATTERN, PATTERN_SECTION_SEP, PATTERN_SENTENCE_VARIANTS } from "regexps";
-import { Editor, MarkdownPostProcessorContext } from "obsidian";
+import { PATTERN_POEM_HEAD, PATTERN_DOT, PATTERN_SENTENCE, PATTERN_SENTENCE_PATTERN, PATTERN_SECTION_SEP, PATTERN_SENTENCE_VARIANTS } from "regexps";
+import { Editor } from "obsidian";
 import { POEM_CODE_TAG, PatternType, PoemHead, PoemKind, SentencePattern, SentenceVariant } from "types";
-import { variationType } from "tones";
+import { makeSentences, variationType } from "tones";
 
 export function getCodeBlock(head: PoemHead): string {
     const block = 
@@ -15,27 +15,6 @@ ${head.kind}: ${head.name}
     return block;
 }
 
-export function renderPoem(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) : void {
-    // Remove pinyin annotations
-    source = source.replace(PATTERN_PINYIN, '');
-    const rows = splitLines(source, false);
-
-    const div = el.createDiv({ cls: "poem" });
-    for (let i = 0; i < rows.length; i++) {
-        const row = rows[i];
-        const head = extractHead(row);
-        if (head) {
-            const { kind, name, title } = head;
-            const nameAndTitle = [name, title].filter(s => s).join('·');
-            const headEl = div.createDiv({ cls: "poem-head" });
-            headEl.createSpan({ text: nameAndTitle, cls: "poem-title" });
-            headEl.createSpan({ text: kind, cls: "poem-kind" });
-        } else {
-            div.createDiv({ text: row, cls: "poem-line" });
-        }
-    }
-}
-
 export function insertPoemInEditor(head: PoemHead, editor: Editor) {
     const codeBlock = getCodeBlock(head);
     const cursor = editor.getCursor();
@@ -47,6 +26,19 @@ export function insertPoemInEditor(head: PoemHead, editor: Editor) {
       line: cursor.line + codeBlock.split('\n').length - 3,
       ch: 0,
     });
+}
+
+export function extractPoem(content: string) {
+    const lines = splitLines(content, false);
+    const head = extractHead(lines[0]);
+    if (!head) {
+        return null;
+    }
+
+    const sentsOfLines = lines.slice(1).map(line => makeSentences(extractSentences(line)));
+    const sentences = sentsOfLines.flat();
+    const paragraphs = sentsOfLines.map((sents) => sents.length);
+    return { head, sentences, paragraphs};
 }
 
 export function isHead(row: string): boolean {
