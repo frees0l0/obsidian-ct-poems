@@ -54,7 +54,7 @@ export class PoemCompositionHint extends EditorSuggest<TuneMatch> {
     }
 
     renderSuggestion(tune: TuneMatch, el: HTMLElement) {
-        renderTuneSuggestion(tune, el);
+        renderTuneSuggestion(tune, el, this.settings.showDescInEditing);
     }
     
     async selectSuggestion(value: TuneMatch, evt: MouseEvent | KeyboardEvent) {

@@ -81,11 +81,11 @@ function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence
       break;
     }
 
-    // Break on unmatched sentence's lengths
-    if ((i == composedSents.length - 1 && composedSent.tones.length > sentPattern.tones.length) ||
-      (i < composedSents.length - 1 && composedSent.tones.length != sentPattern.tones.length)) {
-      break;
-    }
+    // Break on unmatched sentence's lengths: disabled as it will make such sentences not accessible in reading view
+    // if ((i == composedSents.length - 1 && composedSent.tones.length > sentPattern.tones.length) ||
+    //   (i < composedSents.length - 1 && composedSent.tones.length != sentPattern.tones.length)) {
+    //   break;
+    // }
 
     // Break on unmatched keys of tones only for first and complete sentence of four/eight-line poems
     if (hasVariants && i == 0 && composedSent.tones.length == sentPattern.tones.length &&
@@ -123,6 +123,7 @@ function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence
     }
     else {
       const vs = hasVariants ? (SENTENCE_VARIANTS.get(sentPattern.tones) ?? []) : [];
+      // Copy needed attributes from normal pattern to variants
       const vPatterns = vs.map(v => Object.assign({}, sentPattern, { tones: v.tones, patternType: v.patternType, counterpart: v.counterpart }));
       const allPatterns = [sentPattern, ...vPatterns];
 
