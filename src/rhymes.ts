@@ -20,7 +20,7 @@ abstract class Rhymes {
     }
 }
 
-class SimpleRhymes extends Rhymes {
+abstract class SimpleRhymes extends Rhymes {
     private rhymeGroupIndex;
 
     constructor(rhymeGroups: [string, string[]][], looseRhymeMatches: string[][]) {
