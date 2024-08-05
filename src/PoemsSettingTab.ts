@@ -38,15 +38,5 @@ export class PoemsSettingTab extends PluginSettingTab {
           this.plugin.settings.showDescInEditing = value;
           await this.plugin.saveSettings();
         }));
-    
-    new Setting(containerEl)
-      .setName('阅读视图显示格律')
-      .setDesc('是否在阅读视图显示格律（平仄和押韵）。需要重新打开文件以生效。')
-      .addToggle(component => component
-        .setValue(this.plugin.settings.showTuneInReading ?? DEFAULT_SETTINGS.showTuneInReading)
-        .onChange(async (value) => {
-          this.plugin.settings.showTuneInReading = value;
-          await this.plugin.saveSettings();
-        }));
   }
 }

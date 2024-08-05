@@ -2,14 +2,12 @@
 export interface PluginSettings {
   rhymesType: string
   showDescInEditing: boolean;
-  showTuneInReading: boolean;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
   // showTonesInReading: false,
   rhymesType: 'std',
   showDescInEditing: true,
-  showTuneInReading: true,
 };
 
 // Constants

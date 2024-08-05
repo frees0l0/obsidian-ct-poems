@@ -58,12 +58,20 @@ export function renderTuneSuggestion(tune: TuneMatch, el: HTMLElement, showDesc:
 
 /* Common rendering functions */
 
-function renderPoemHead(head: PoemHead, displayKind: string, el: HTMLElement) {
+function renderPoemHead(head: PoemHead, displayKind: string, poemEl: HTMLElement) {
     const { kind, name, title } = head;
     const nameAndTitle = [name, title].filter(s => s).join('·');
-    const headEl = el.createDiv({ cls: "poem-head" });
+    const headEl = poemEl.createDiv({ cls: "poem-head" });
     headEl.createSpan({ text: nameAndTitle, cls: "poem-title" });
-    headEl.createSpan({ text: displayKind || kind, cls: "poem-kind" });
+    headEl.createSpan({ text: displayKind || kind, cls: "poem-kind", title: '点击显示或隐藏格律' }, el => {
+        el.addEventListener('click', (ev) => {
+            const elsOfTones = poemEl.getElementsByClassName('poem-tones');
+            for (let i = 0; i < elsOfTones.length; i++) {
+                const tonesEl = elsOfTones[i] as HTMLElement;
+                tonesEl.style.display = !tonesEl.style.display || tonesEl.style.display == 'block' ? 'none' : 'block';
+            }
+        });
+    });
 }
 
 /**
@@ -72,13 +80,13 @@ function renderPoemHead(head: PoemHead, displayKind: string, el: HTMLElement) {
 function renderSentenceGroup(el: HTMLElement, sents: SentencePattern[], composedSents: Sentence[], renderWords: boolean, renderTones: boolean, groupClass: string) {
     const groupEl = el.createDiv({ cls: ['flex-v', groupClass] });
     if (renderTones) {
-        const lineEl = groupEl.createDiv({ cls: 'flex-h' });
+        const lineEl = groupEl.createDiv({ cls: 'poem-tones' });
         for (let i = 0; i < sents.length; i++) {
             renderSentenceTones(lineEl, sents[i], composedSents[i]);
         }
     }
     if (renderWords) {
-        const lineEl = groupEl.createDiv({ cls: 'flex-h' });
+        const lineEl = groupEl.createDiv();
         const s = composedSents.map((sent, i) => {
             return i != composedSents.length - 1 || sent.words.length == sents[i].tones.length ? sent.words + sent.punctuation : sent.words;
         }).join('');

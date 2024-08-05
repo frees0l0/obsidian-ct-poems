@@ -63,7 +63,7 @@ export default class CTPoemsPlugin extends Plugin {
 
     // Add ci-poem code block processor
     this.registerMarkdownCodeBlockProcessor(POEM_CODE_TAG, (souce, el, ctx) => {
-      renderPoem(souce, el, this.settings.showTuneInReading);
+      renderPoem(souce, el, true);
     });
 
     // Add hint for the composed tune
