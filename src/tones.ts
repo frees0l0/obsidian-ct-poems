@@ -1,9 +1,10 @@
 import { pinyin } from "pinyin-pro";
 import { PATTERN_WORD_WITH_PINYIN, PATTERN_ENDING_PUNC } from "regexps";
-import { getTone } from "rhymes";
+import { getRhymes } from "rhymes";
 import { PatternType, PoemKind, RhymeType, Sentence, SentencePattern, Tone, ToneMatch } from "types";
 
 export function makeSentences(sentences: string[]): Sentence[] {
+    const rhymes = getRhymes();
     return sentences.map(s => {
         // Remove ending punctuation if present
         const m = s.match(PATTERN_ENDING_PUNC);
@@ -27,7 +28,7 @@ export function makeSentences(sentences: string[]): Sentence[] {
             }
         })
         // Build sentence
-        const tones = finals.map((final, i) => getTone(final, words[i])).join('');
+        const tones = finals.map((final, i) => rhymes.getTone(final, words[i])).join('');
         const rhyme = finals.at(-1) ?? '';
         // The sentence may be incomplete, so do not decide whether rhymed here
         return {

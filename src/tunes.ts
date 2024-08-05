@@ -2,7 +2,7 @@ import { PoemKind, RhymeType, Sentence, SentenceVariant, SentencePattern, Senten
 import { extractSentencePatterns, extractSentenceVariants, splitSections } from "poemUtil";
 import { PATTERN_TONE_MATCHED } from "regexps";
 import { keyOfTones, matchSentenceTones } from "tones";
-import { getRhymeGroup, matchRhymeGroup } from "rhymes";
+import { getRhymes } from "rhymes";
 import { argmax } from "utils";
 
 const ALL_TUNES = new Map<string, Tune[]>();
@@ -71,6 +71,7 @@ function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence
   const resultSents: Sentence[] = [];
   const looseRhymeMatch = kind == PoemKind.CI;
 
+  const rhymes = getRhymes();
   const rhymeGroups: string[] = [];
   let successiveTones = null;
   for (let i = 0; i < resultPatterns.length; i++) {
@@ -99,17 +100,17 @@ function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence
     // Match rhyme only for complete sentence
     let curRhymeGroup;
     if (composedSent.tones.length == sentPattern.tones.length) {
-      const rhymeGroup = sentPattern.rhymeType != RhymeType.NONE ? getRhymeGroup(composedSent.rhyme, composedSent.words.at(-1)) : '';
+      const rhymeGroup = sentPattern.rhymeType != RhymeType.NONE ? rhymes.getRhymeGroup(composedSent.rhyme, composedSent.words.at(-1)) : '';
       if (sentPattern.rhymeType == RhymeType.NEW || (sentPattern.rhymeType == RhymeType.REQUIRED && rhymeGroups.length == 0)) {
         rhymeGroups.push(rhymeGroup);
         composedSent.rhymed = true;
       }
       else if (sentPattern.rhymeType == RhymeType.REQUIRED && (curRhymeGroup = rhymeGroups.at(-1))) {
-        composedSent.rhymed = matchRhymeGroup(curRhymeGroup, rhymeGroup, looseRhymeMatch);
+        composedSent.rhymed = rhymes.matchRhymeGroup(curRhymeGroup, rhymeGroup, looseRhymeMatch);
       }
       else if (sentPattern.rhymeType == RhymeType.RESUME && (curRhymeGroup = rhymeGroups.at(-2))) {
         rhymeGroups.push(curRhymeGroup);
-        composedSent.rhymed = matchRhymeGroup(curRhymeGroup, rhymeGroup, looseRhymeMatch);
+        composedSent.rhymed = rhymes.matchRhymeGroup(curRhymeGroup, rhymeGroup, looseRhymeMatch);
       }
     }
 

@@ -3,7 +3,7 @@ import { Tone } from "types";
 abstract class Rhymes {
     private looseRhymeMatches;
     
-    constructor(looseRhymeMatches: string[][]) {
+    constructor(looseRhymeMatches: string[][] | null = null) {
         this.looseRhymeMatches = looseRhymeMatches;
     }
     
@@ -16,8 +16,8 @@ abstract class Rhymes {
             return true;
         }
 
-        if (looseMatch && this.looseRhymeMatches.find(m => m.contains(r1) && m.contains(r2))) {
-            return true;
+        if (looseMatch) {
+            return !this.looseRhymeMatches || this.looseRhymeMatches.find(m => m.contains(r1) && m.contains(r2)) != undefined;
         }
 
         return false;
@@ -119,22 +119,42 @@ class ChineseStandardRhymes extends SimpleRhymes {
     }
 }
 
+class PSRhymes extends Rhymes {
+    constructor() {
+        super(null);
+    }
+
+    getRhymeGroup(finalAndToneNum: string, word: string | undefined): string {
+        throw new Error("Method not implemented.");
+    }
+
+    getTone(finalAndToneNum: string, word: string | undefined): Tone {
+        throw new Error("Method not implemented.");
+    }
+}
+
 const NEW_RHYMES = new ChineseNewRhymes()
 const STD_RHYMES = new ChineseStandardRhymes();
-let current: Rhymes = STD_RHYMES;
-
-export function getRhymeGroup(finalAndToneNum: string, word: string | undefined): string {
-    return current.getRhymeGroup(finalAndToneNum, word);
-}
-
-export function getTone(finalAndToneNum: string, word: string | undefined): Tone {
-    return current.getTone(finalAndToneNum, word);
-}
-
-export function matchRhymeGroup(r1: string, r2: string, looseMatch: boolean): boolean {
-    return current.matchRhymeGroup(r1, r2, looseMatch);
-}
+const PS_RHYMES = new PSRhymes();
+let current_rhymes: Rhymes = STD_RHYMES;
 
 export function switchRhymes(type: string) {
-    current = type == 'new' ? NEW_RHYMES : STD_RHYMES;
+    current_rhymes = _getRhymes(type);
+}
+
+export function getRhymes(type: string | undefined = undefined): Rhymes {
+    return type ? _getRhymes(type) : current_rhymes;
+}
+
+function _getRhymes(type: string): Rhymes {
+    switch(type) {
+        case 'new':
+            return NEW_RHYMES;
+        case 'std':
+            return STD_RHYMES;
+        case 'ps':
+            return PS_RHYMES;
+        default:
+            return STD_RHYMES;
+    }
 }
