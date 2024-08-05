@@ -115,6 +115,10 @@ export type Tune = {
    */
   sections: number[];
   /**
+   * 用于显示的类型
+   */
+  displayKind: string;
+  /**
    * 描述
    */
   desc: string | undefined;

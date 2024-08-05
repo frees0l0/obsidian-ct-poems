@@ -169,12 +169,22 @@ function buildTune(kind: PoemKind, name: string, tones: string, desc: string | u
   const sentsOfSections = sections.map(line => extractSentencePatterns(line));
   const sents = sentsOfSections.flat();
   const lensOfSections = sentsOfSections.map(sentTonesOfline => sentTonesOfline.length);
+  const displayKind = getDisplayKind(kind, sents);
   return {
     kind: kind,
     name: name,
     title: '',
     sentencePatterns: sents,
     sections: lensOfSections,
+    displayKind: displayKind,
     desc: desc,
   }
+}
+
+function getDisplayKind(kind: PoemKind, sents: SentencePattern[]): string {
+  if (kind == PoemKind.CI) {
+    const wordCount = sents.reduce((count, s) => count += s.tones.length, 0);
+    return wordCount <=58 ? '小令' : (wordCount <=90 ? '中调' : '长调');
+  }
+  return kind;
 }

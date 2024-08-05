@@ -15,7 +15,7 @@ export function renderPoem(source: string, el: HTMLElement, renderTones: boolean
     }
 
     el = el.createDiv({ cls: "poem" });
-    renderPoemHead(poem.head, el);
+    renderPoemHead(poem.head, tune.displayKind, el);
 
     const { sentencePatterns, composedSentences, composedParagraphs, sections} = tune;
     let groupStart = 0, sectionSentCount = 0, sectionIndex = 0;
@@ -58,12 +58,12 @@ export function renderTuneSuggestion(tune: TuneMatch, el: HTMLElement, showDesc:
 
 /* Common rendering functions */
 
-function renderPoemHead(head: PoemHead, el: HTMLElement) {
+function renderPoemHead(head: PoemHead, displayKind: string, el: HTMLElement) {
     const { kind, name, title } = head;
     const nameAndTitle = [name, title].filter(s => s).join('·');
     const headEl = el.createDiv({ cls: "poem-head" });
     headEl.createSpan({ text: nameAndTitle, cls: "poem-title" });
-    headEl.createSpan({ text: kind, cls: "poem-kind" });
+    headEl.createSpan({ text: displayKind || kind, cls: "poem-kind" });
 }
 
 /**
