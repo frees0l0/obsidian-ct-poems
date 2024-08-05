@@ -1,3 +1,5 @@
+import { Tone } from "types";
+
 abstract class Rhymes {
     private looseRhymeMatches;
     
@@ -6,6 +8,8 @@ abstract class Rhymes {
     }
     
     abstract getRhymeGroup(finalAndToneNum: string, word: string | undefined): string;
+
+    abstract getTone(finalAndToneNum: string, word: string | undefined): Tone;
 
     matchRhymeGroup(r1: string, r2: string, looseMatch: boolean): boolean {
         if (r1 === r2) {
@@ -45,6 +49,11 @@ abstract class SimpleRhymes extends Rhymes {
             console.log(`Rhyme group not found: ${finalAndToneNum}`);
         }
         return group || '-';
+    }
+
+    getTone(finalAndToneNum: string, word: string | undefined): Tone {
+        const toneNum = finalAndToneNum.at(-1);
+        return toneNum == '0' || toneNum == '1' || toneNum == '2' ? Tone.PING : (toneNum == '3' || toneNum == '4' || toneNum == '5' ? Tone.ZE : Tone.UNKNOWN);
     }
 }
 
@@ -116,6 +125,10 @@ let current: Rhymes = STD_RHYMES;
 
 export function getRhymeGroup(finalAndToneNum: string, word: string | undefined): string {
     return current.getRhymeGroup(finalAndToneNum, word);
+}
+
+export function getTone(finalAndToneNum: string, word: string | undefined): Tone {
+    return current.getTone(finalAndToneNum, word);
 }
 
 export function matchRhymeGroup(r1: string, r2: string, looseMatch: boolean): boolean {

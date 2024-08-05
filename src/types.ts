@@ -25,6 +25,7 @@ export enum Tone {
   PING = '平',
   ZE = '仄',
   BOTH = '中',
+  UNKNOWN = '-',
 }
 
 export enum ToneMatch {
