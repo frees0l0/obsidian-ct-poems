@@ -1,29 +1,11 @@
-class Rhymes {
-    private rhymeGroupIndex;
+abstract class Rhymes {
     private looseRhymeMatches;
-
-    constructor(rhymeGroups: [string, string[]][], looseRhymeMatches: string[][]) {
-        this.rhymeGroupIndex = this.buildRhymeGroupIndex(rhymeGroups);
+    
+    constructor(looseRhymeMatches: string[][]) {
         this.looseRhymeMatches = looseRhymeMatches;
     }
-
-    private buildRhymeGroupIndex(rhymeGroups: [string, string[]][]): { [key: string]: string } {
-        const index: { [key: string]: string } = {};
-        for (const [group, pinyins] of rhymeGroups) {
-            for (const pinyin of pinyins) {
-                index[pinyin] = group;
-            }
-        }
-        return index;
-    }
-
-    getRhymeGroup(pinyinFinal: string): string {
-        const group = this.rhymeGroupIndex[pinyinFinal];
-        if (!group) {
-            console.log(`Rhyme group not found: ${pinyinFinal}`);
-        }
-        return group || '-';
-    }
+    
+    abstract getRhymeGroup(finalAndToneNum: string, word: string | undefined): string;
 
     matchRhymeGroup(r1: string, r2: string, looseMatch: boolean): boolean {
         if (r1 === r2) {
@@ -38,10 +20,38 @@ class Rhymes {
     }
 }
 
+class SimpleRhymes extends Rhymes {
+    private rhymeGroupIndex;
+
+    constructor(rhymeGroups: [string, string[]][], looseRhymeMatches: string[][]) {
+        super(looseRhymeMatches);
+        this.rhymeGroupIndex = this.buildRhymeGroupIndex(rhymeGroups);
+    }
+
+    private buildRhymeGroupIndex(rhymeGroups: [string, string[]][]): { [key: string]: string } {
+        const index: { [key: string]: string } = {};
+        for (const [group, pinyins] of rhymeGroups) {
+            for (const pinyin of pinyins) {
+                index[pinyin] = group;
+            }
+        }
+        return index;
+    }
+
+    getRhymeGroup(finalAndToneNum: string, word: string | undefined): string {
+        const final = finalAndToneNum.substring(0, finalAndToneNum.length - 1);
+        const group = this.rhymeGroupIndex[final];
+        if (!group) {
+            console.log(`Rhyme group not found: ${finalAndToneNum}`);
+        }
+        return group || '-';
+    }
+}
+
 /**
  * 中华新韵
  */
-class ChineseNewRhymes extends Rhymes {
+class ChineseNewRhymes extends SimpleRhymes {
     constructor() {
         super(
             [
@@ -70,7 +80,7 @@ class ChineseNewRhymes extends Rhymes {
 /**
  * 中华通韵
  */
-class ChineseStandardRhymes extends Rhymes {
+class ChineseStandardRhymes extends SimpleRhymes {
     constructor() {
         super(
             [
@@ -102,10 +112,10 @@ class ChineseStandardRhymes extends Rhymes {
 
 const NEW_RHYMES = new ChineseNewRhymes()
 const STD_RHYMES = new ChineseStandardRhymes();
-let current = STD_RHYMES;
+let current: Rhymes = STD_RHYMES;
 
-export function getRhymeGroup(pinyinFinal: string): string {
-    return current.getRhymeGroup(pinyinFinal);
+export function getRhymeGroup(finalAndToneNum: string, word: string | undefined): string {
+    return current.getRhymeGroup(finalAndToneNum, word);
 }
 
 export function matchRhymeGroup(r1: string, r2: string, looseMatch: boolean): boolean {

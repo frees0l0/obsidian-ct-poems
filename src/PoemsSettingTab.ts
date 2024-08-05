@@ -17,8 +17,8 @@ export class PoemsSettingTab extends PluginSettingTab {
     containerEl.empty();
 
     new Setting(containerEl)
-      .setName('诗词韵表')
-      .setDesc('诗词格律校验使用的韵表。')
+      .setName('诗词韵典')
+      .setDesc('诗词格律校验使用的韵典。')
       .addDropdown(component => component
         .addOption('std', '中华通韵')
         .addOption('new', '中华新韵')

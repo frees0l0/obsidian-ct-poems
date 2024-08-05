@@ -1,5 +1,5 @@
 import { pinyin } from "pinyin-pro";
-import { PATTERN_WORD_WITH_PINYIN, PATTERN_ENDING_PUNC, PATTERN_PINYIN_TONE_NUM } from "regexps";
+import { PATTERN_WORD_WITH_PINYIN, PATTERN_ENDING_PUNC } from "regexps";
 import { PatternType, PoemKind, RhymeType, Sentence, SentencePattern, Tone, ToneMatch } from "types";
 
 export function makeSentences(sentences: string[]): Sentence[] {
@@ -27,7 +27,7 @@ export function makeSentences(sentences: string[]): Sentence[] {
         })
         // Build sentence
         const tones = finals.map(py => toneOfPinyin(py)).join('');
-        const rhyme = finals.at(-1)?.replace(PATTERN_PINYIN_TONE_NUM, '') ?? '';
+        const rhyme = finals.at(-1) ?? '';
         // The sentence may be incomplete, so do not decide whether rhymed here
         return {
             words: words,
@@ -40,9 +40,9 @@ export function makeSentences(sentences: string[]): Sentence[] {
     });
 }
 
-export function toneOfPinyin(pinyinOrNonZh: string): string {
+export function toneOfPinyin(pinyinOrNonZh: string): Tone | '-' {
     const toneNum = pinyinOrNonZh[pinyinOrNonZh.length - 1];
-    return toneNum == '0' || toneNum == '1' || toneNum == '2' ? '平' : (toneNum == '3' || toneNum == '4' ? '仄' : '-');
+    return toneNum == '0' || toneNum == '1' || toneNum == '2' ? Tone.PING : (toneNum == '3' || toneNum == '4' || toneNum == '5' ? Tone.ZE : '-');
 }
 
 /**

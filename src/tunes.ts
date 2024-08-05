@@ -99,17 +99,15 @@ function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence
     // Match rhyme only for complete sentence
     let curRhymeGroup;
     if (composedSent.tones.length == sentPattern.tones.length) {
+      const rhymeGroup = sentPattern.rhymeType != RhymeType.NONE ? getRhymeGroup(composedSent.rhyme, composedSent.words.at(-1)) : '';
       if (sentPattern.rhymeType == RhymeType.NEW || (sentPattern.rhymeType == RhymeType.REQUIRED && rhymeGroups.length == 0)) {
-        const rhymeGroup = getRhymeGroup(composedSent.rhyme);
         rhymeGroups.push(rhymeGroup);
         composedSent.rhymed = true;
       }
       else if (sentPattern.rhymeType == RhymeType.REQUIRED && (curRhymeGroup = rhymeGroups.at(-1))) {
-        const rhymeGroup = getRhymeGroup(composedSent.rhyme);
         composedSent.rhymed = matchRhymeGroup(curRhymeGroup, rhymeGroup, looseRhymeMatch);
       }
       else if (sentPattern.rhymeType == RhymeType.RESUME && (curRhymeGroup = rhymeGroups.at(-2))) {
-        const rhymeGroup = getRhymeGroup(composedSent.rhyme);
         rhymeGroups.push(curRhymeGroup);
         composedSent.rhymed = matchRhymeGroup(curRhymeGroup, rhymeGroup, looseRhymeMatch);
       }
