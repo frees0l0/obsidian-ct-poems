@@ -51,6 +51,24 @@ export enum RhymeType {
   NONE = '',
 }
 
+export type RhymeGroupKey = {
+  /**
+   * 韵部名称
+   */
+  name: string;
+  /**
+   * '平声' | '上声' | '去声' | '入声'
+   */
+  tone: string;
+}
+
+export type RhymeGroup = {
+  /**
+   * 韵部包含的所有汉字
+   */
+  words: string;
+} & RhymeGroupKey;
+
 export enum PatternType {
   NORMAL = "正格",
   VARIATION = "变格",

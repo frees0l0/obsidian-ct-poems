@@ -1,13 +1,18 @@
 import { PINGSHUI_RHYMES } from "data/psRhymes";
-import { Tone } from "types";
+import { RhymeGroup, RhymeGroupKey, Tone } from "types";
 
 export const RHYME_GROUP_UNKNOWN = '-';
 
 abstract class Rhymes {
-    looseMatcher;
+    looseRhymeMatcher;
     
-    constructor(looseMatches: string[][]) {
-        this.looseMatcher = new RhymeGroupMatcher(looseMatches);
+    constructor(looseRhymeMatches: string[][]) {
+        this.looseRhymeMatcher = new RhymeGroupMatcher(looseRhymeMatches);
+    }
+
+    static toneOfPinyin(finalAndToneNum: string) {
+        const toneNum = finalAndToneNum.at(-1);
+        return toneNum == '0' || toneNum == '1' || toneNum == '2' ? Tone.PING : (toneNum == '3' || toneNum == '4' || toneNum == '5' ? Tone.ZE : Tone.UNKNOWN);
     }
     
     abstract getRhymeGroup(finalAndToneNum: string, word: string): string;
@@ -18,7 +23,7 @@ abstract class Rhymes {
         if (r1 === r2) {
             return true;
         }
-        return looseMatch ? this.looseMatcher.matchRhymeGroup(r1, r2) : false;
+        return looseMatch ? this.looseRhymeMatcher.matchRhymeGroup(r1, r2) : false;
     }
 }
 
@@ -37,11 +42,6 @@ class RhymeGroupMatcher {
         const c2 = this.categoryIndex.get(r2);
         return c1 && c2 ? c1 == c2 : false;
     }
-}
-
-function toneOfPinyin(finalAndToneNum: string) {
-    const toneNum = finalAndToneNum.at(-1);
-    return toneNum == '0' || toneNum == '1' || toneNum == '2' ? Tone.PING : (toneNum == '3' || toneNum == '4' || toneNum == '5' ? Tone.ZE : Tone.UNKNOWN);
 }
 
 abstract class PinyinRhymes extends Rhymes {
@@ -71,7 +71,7 @@ abstract class PinyinRhymes extends Rhymes {
     }
 
     getTone(finalAndToneNum: string, word: string): Tone {
-        return toneOfPinyin(finalAndToneNum);
+        return Rhymes.toneOfPinyin(finalAndToneNum);
     }
 }
 
@@ -137,34 +137,19 @@ class ChineseStandardRhymes extends PinyinRhymes {
     }
 }
 
-type RhymeGroupKey = {
-    /**
-     * 韵部名称
-     */
-    name: string;
-    /**
-     * '平声' | '上声' | '去声' | '入声'
-     */
-    tone: string;
-}
-
-type RhymeGroup = {
-    words: string;
-} & RhymeGroupKey;
-
-const CILIN_MATCHES = [
-    []
-];
-
 /**
  * Pingshui & Cilin rhymes.
  */
 class PSRhymes extends Rhymes {
+    private static CI_RHYME_MATCHES = [
+        []
+    ];
+
     private rhymeGroupIndex = new Map<string, RhymeGroupKey[]>();
     private defaultRhymeMatcher: RhymeGroupMatcher;
 
-    constructor(rhymes: RhymeGroup[], looseRhymeMatches: string[][]) {
-        super(looseRhymeMatches);
+    constructor(rhymes: RhymeGroup[]) {
+        super(PSRhymes.CI_RHYME_MATCHES);
         this.buildRhymeGroupIndex(rhymes);
     }
 
@@ -183,11 +168,11 @@ class PSRhymes extends Rhymes {
         if (groups && groups.length == 1) {
             return this.normalizedTone(groups[0].tone);
         }
-        return toneOfPinyin(finalAndToneNum);
+        return Rhymes.toneOfPinyin(finalAndToneNum);
     }
 
     matchRhymeGroup(r1: string, r2: string, looseMatch: boolean): boolean {
-        const matcher = looseMatch ? this.looseMatcher : this.defaultRhymeMatcher;
+        const matcher = looseMatch ? this.looseRhymeMatcher : this.defaultRhymeMatcher;
         // Match multiple group names as a workaround for now
         const as = r1.split('|');
         const bs = r2.split('|');
@@ -243,7 +228,7 @@ class PSRhymes extends Rhymes {
 // Globals
 const NEW_RHYMES = new ChineseNewRhymes()
 const STD_RHYMES = new ChineseStandardRhymes();
-const PS_RHYMES = new PSRhymes(PINGSHUI_RHYMES, CILIN_MATCHES);
+const PS_RHYMES = new PSRhymes(PINGSHUI_RHYMES);
 let current_rhymes: Rhymes = STD_RHYMES;
 
 export function switchRhymes(type: string) {
