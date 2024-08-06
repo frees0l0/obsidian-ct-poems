@@ -1,5 +1,5 @@
 // 格式："词牌：菩萨蛮" or "词牌：菩萨蛮·秋思"
-export const PATTERN_POEM_HEAD = /^(?<kind>\p{L}+)[:：]\s*(?<info>\p{L}+(?:[.·]\p{L}+)?)?$/u;
+export const PATTERN_POEM_HEAD = /^(?<kind>\p{L}+)[:：]\s*(?<info>\p{L}+(?:[.·]\p{L}+)?)?(?:[(（](?<rhymes>\p{L}+)[)）])?$/u;
 
 export const PATTERN_WORD_WITH_PINYIN = /(?<word>[^a-z0-5])(?<pinyin>[a-z]+[0-5])?/gu;
 export const PATTERN_PINYIN = /[a-z]+[0-5]/g;

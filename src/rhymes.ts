@@ -1,66 +1,84 @@
+import { PINGSHUI_RHYMES } from "data/psRhymes";
 import { Tone } from "types";
 
+export const RHYME_GROUP_UNKNOWN = '-';
+
 abstract class Rhymes {
-    private looseRhymeMatches;
+    looseMatcher;
     
-    constructor(looseRhymeMatches: string[][] | null = null) {
-        this.looseRhymeMatches = looseRhymeMatches;
+    constructor(looseMatches: string[][]) {
+        this.looseMatcher = new RhymeGroupMatcher(looseMatches);
     }
     
-    abstract getRhymeGroup(finalAndToneNum: string, word: string | undefined): string;
+    abstract getRhymeGroup(finalAndToneNum: string, word: string): string;
 
-    abstract getTone(finalAndToneNum: string, word: string | undefined): Tone;
+    abstract getTone(finalAndToneNum: string, word: string): Tone;
 
     matchRhymeGroup(r1: string, r2: string, looseMatch: boolean): boolean {
         if (r1 === r2) {
             return true;
         }
-
-        if (looseMatch) {
-            return !this.looseRhymeMatches || this.looseRhymeMatches.find(m => m.contains(r1) && m.contains(r2)) != undefined;
-        }
-
-        return false;
+        return looseMatch ? this.looseMatcher.matchRhymeGroup(r1, r2) : false;
     }
 }
 
-abstract class SimpleRhymes extends Rhymes {
-    private rhymeGroupIndex;
+class RhymeGroupMatcher {
+    // Rhyme group name -> category no.
+    private categoryIndex = new Map<string, number>();
+
+    constructor(matches: string[][]) {
+        for (let i = 0; i < matches.length; i++) {
+            matches[i].forEach(name => this.categoryIndex.set(name, i+1));
+        }
+    }
+
+    matchRhymeGroup(r1: string, r2: string): boolean {
+        const c1 = this.categoryIndex.get(r1);
+        const c2 = this.categoryIndex.get(r2);
+        return c1 && c2 ? c1 == c2 : false;
+    }
+}
+
+function toneOfPinyin(finalAndToneNum: string) {
+    const toneNum = finalAndToneNum.at(-1);
+    return toneNum == '0' || toneNum == '1' || toneNum == '2' ? Tone.PING : (toneNum == '3' || toneNum == '4' || toneNum == '5' ? Tone.ZE : Tone.UNKNOWN);
+}
+
+abstract class PinyinRhymes extends Rhymes {
+    // Pinyin -> rhyme group
+    private rhymeGroupIndex = new Map<string, string>();
 
     constructor(rhymeGroups: [string, string[]][], looseRhymeMatches: string[][]) {
         super(looseRhymeMatches);
-        this.rhymeGroupIndex = this.buildRhymeGroupIndex(rhymeGroups);
+        this.buildRhymeGroupIndex(rhymeGroups);
     }
 
-    private buildRhymeGroupIndex(rhymeGroups: [string, string[]][]): { [key: string]: string } {
-        const index: { [key: string]: string } = {};
+    private buildRhymeGroupIndex(rhymeGroups: [string, string[]][]) {
         for (const [group, pinyins] of rhymeGroups) {
             for (const pinyin of pinyins) {
-                index[pinyin] = group;
+                this.rhymeGroupIndex.set(pinyin, group);
             }
         }
-        return index;
     }
 
-    getRhymeGroup(finalAndToneNum: string, word: string | undefined): string {
+    getRhymeGroup(finalAndToneNum: string, word: string): string {
         const final = finalAndToneNum.substring(0, finalAndToneNum.length - 1);
-        const group = this.rhymeGroupIndex[final];
+        const group = this.rhymeGroupIndex.get(final);
         if (!group) {
             console.log(`Rhyme group not found: ${finalAndToneNum}`);
         }
-        return group || '-';
+        return group || RHYME_GROUP_UNKNOWN;
     }
 
-    getTone(finalAndToneNum: string, word: string | undefined): Tone {
-        const toneNum = finalAndToneNum.at(-1);
-        return toneNum == '0' || toneNum == '1' || toneNum == '2' ? Tone.PING : (toneNum == '3' || toneNum == '4' || toneNum == '5' ? Tone.ZE : Tone.UNKNOWN);
+    getTone(finalAndToneNum: string, word: string): Tone {
+        return toneOfPinyin(finalAndToneNum);
     }
 }
 
 /**
  * 中华新韵
  */
-class ChineseNewRhymes extends SimpleRhymes {
+class ChineseNewRhymes extends PinyinRhymes {
     constructor() {
         super(
             [
@@ -89,7 +107,7 @@ class ChineseNewRhymes extends SimpleRhymes {
 /**
  * 中华通韵
  */
-class ChineseStandardRhymes extends SimpleRhymes {
+class ChineseStandardRhymes extends PinyinRhymes {
     constructor() {
         super(
             [
@@ -119,40 +137,130 @@ class ChineseStandardRhymes extends SimpleRhymes {
     }
 }
 
+type RhymeGroupKey = {
+    /**
+     * 韵部名称
+     */
+    name: string;
+    /**
+     * '平声' | '上声' | '去声' | '入声'
+     */
+    tone: string;
+}
+
+type RhymeGroup = {
+    words: string;
+} & RhymeGroupKey;
+
+const CILIN_MATCHES = [
+    []
+];
+
+/**
+ * Pingshui & Cilin rhymes.
+ */
 class PSRhymes extends Rhymes {
-    constructor() {
-        super(null);
+    private rhymeGroupIndex = new Map<string, RhymeGroupKey[]>();
+    private defaultRhymeMatcher: RhymeGroupMatcher;
+
+    constructor(rhymes: RhymeGroup[], looseRhymeMatches: string[][]) {
+        super(looseRhymeMatches);
+        this.buildRhymeGroupIndex(rhymes);
     }
 
-    getRhymeGroup(finalAndToneNum: string, word: string | undefined): string {
-        throw new Error("Method not implemented.");
+    getRhymeGroup(finalAndToneNum: string, word: string): string {
+        const groups = this.rhymeGroupIndex.get(word);
+        // Return multiple group names as a workaround for now
+        if (groups) {
+            return groups.map(g => g.name).join('|');
+        }
+        return RHYME_GROUP_UNKNOWN;
     }
 
-    getTone(finalAndToneNum: string, word: string | undefined): Tone {
-        throw new Error("Method not implemented.");
+    getTone(finalAndToneNum: string, word: string): Tone {
+        const groups = this.rhymeGroupIndex.get(word);
+        // Use pingshui if not a polyphone, otherwise fall back to pinyin 
+        if (groups && groups.length == 1) {
+            return this.normalizedTone(groups[0].tone);
+        }
+        return toneOfPinyin(finalAndToneNum);
+    }
+
+    matchRhymeGroup(r1: string, r2: string, looseMatch: boolean): boolean {
+        const matcher = looseMatch ? this.looseMatcher : this.defaultRhymeMatcher;
+        // Match multiple group names as a workaround for now
+        const as = r1.split('|');
+        const bs = r2.split('|');
+        for (const a of as) {
+            for (const b of bs) {
+                if (a == b || matcher.matchRhymeGroup(a, b)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    normalizedTone(tone: string): Tone {
+        return tone == '平声' ? Tone.PING : Tone.ZE;
+    }
+
+    buildRhymeGroupIndex(rhymes: RhymeGroup[]) {
+        const defaultRhymeMatches = [];
+        for (const rhyme of rhymes) {
+            const { name, tone, words } = rhyme;
+            const wordsList = words.split('|');
+            // Handle rhyme group with two halves
+            if (wordsList.length > 1) {
+                const names = [name+'-上', name+'-下'];
+                for (let i = 0; i < names.length; i++) {
+                    this.indexWords(names[i], tone, wordsList[i]);
+                }
+                // Two halves match each other in pingshui, but not in cilin
+                defaultRhymeMatches.push(names);
+            }
+            else {
+                this.indexWords(name, tone, wordsList[0]);
+            }
+        }
+        this.defaultRhymeMatcher = new RhymeGroupMatcher(defaultRhymeMatches);
+    }
+
+    indexWords(name: string, tone: string, words: string) {
+        const group = { name, tone };
+        for (const word of words) {
+            const groups = this.rhymeGroupIndex.get(word);
+            if (groups) {
+                groups.push(group);
+            }
+            else {
+                this.rhymeGroupIndex.set(word, [group]);
+            }
+        }
     }
 }
 
+// Globals
 const NEW_RHYMES = new ChineseNewRhymes()
 const STD_RHYMES = new ChineseStandardRhymes();
-const PS_RHYMES = new PSRhymes();
+const PS_RHYMES = new PSRhymes(PINGSHUI_RHYMES, CILIN_MATCHES);
 let current_rhymes: Rhymes = STD_RHYMES;
 
 export function switchRhymes(type: string) {
     current_rhymes = _getRhymes(type);
 }
 
-export function getRhymes(type: string | undefined = undefined): Rhymes {
+export function getRhymes(type?: string): Rhymes {
     return type ? _getRhymes(type) : current_rhymes;
 }
 
 function _getRhymes(type: string): Rhymes {
     switch(type) {
-        case 'new':
+        case '新韵':
             return NEW_RHYMES;
-        case 'std':
+        case '通韵':
             return STD_RHYMES;
-        case 'ps':
+        case '平水韵':
             return PS_RHYMES;
         default:
             return STD_RHYMES;

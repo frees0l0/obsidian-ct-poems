@@ -18,10 +18,11 @@ export class PoemsSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('诗词韵典')
-      .setDesc('诗词格律校验使用的韵典。')
+      .setDesc('诗词格律校验使用的韵典。选择平水韵时，词的韵典会使用词林正韵；选择中华通韵或新韵时，词的韵典会使用类似词林正韵的宽韵。')
       .addDropdown(component => component
-        .addOption('std', '中华通韵')
-        .addOption('new', '中华新韵')
+        .addOption('通韵', '中华通韵')
+        .addOption('新韵', '中华新韵')
+        .addOption('平水韵', '平水韵')
         .setValue(this.plugin.settings.rhymesType || DEFAULT_SETTINGS.rhymesType)
         .onChange(async (value) => {
           this.plugin.settings.rhymesType = value;

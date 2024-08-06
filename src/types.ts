@@ -5,8 +5,7 @@ export interface PluginSettings {
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
-  // showTonesInReading: false,
-  rhymesType: 'std',
+  rhymesType: '通韵',
   showDescInEditing: true,
 };
 
@@ -74,6 +73,10 @@ export type PoemHead = {
    * 标题
    */
   title: string;
+  /**
+   * 韵典
+   */
+  rhymes?: string;
 }
 
 export type SentencePattern = {
@@ -81,7 +84,7 @@ export type SentencePattern = {
   rhymeType: string;
   punctuation: string;
   patternType: PatternType;
-  counterpart: string | undefined;
+  counterpart?: string;
 }
 
 export type SentenceVariant = {
@@ -95,8 +98,8 @@ export type Sentence = {
   tones: string;
   rhyme: string;
   punctuation: string;
-  rhymed: boolean | undefined;
-  tonesMatched: string | undefined;
+  rhymed?: boolean;
+  tonesMatched?: string;
 }
 
 export type SentencesMatch = {
@@ -120,7 +123,7 @@ export type Tune = {
   /**
    * 描述
    */
-  desc: string | undefined;
+  desc?: string;
 } & PoemHead;
 
 export type TuneMatch = {
@@ -141,5 +144,5 @@ export type TuneMatch = {
 export interface TuneData {
   name: string;
   patterns: string[];
-  desc: string | undefined
+  desc?: string
 }

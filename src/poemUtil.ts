@@ -35,7 +35,7 @@ export function extractPoem(content: string) {
         return null;
     }
 
-    const sentsOfLines = lines.slice(1).map(line => makeSentences(extractSentences(line)));
+    const sentsOfLines = lines.slice(1).map(line => makeSentences(extractSentences(line), head));
     const sentences = sentsOfLines.flat();
     const paragraphs = sentsOfLines.map((sents) => sents.length);
     return { head, sentences, paragraphs};
@@ -59,6 +59,10 @@ export function extractHead(row: string): PoemHead | null {
     let name, title;
     const info = match.groups.info;
     if (kind == PoemKind.CI) {
+        if (!info) {
+            return null;
+        }
+
         const parts = info.split(PATTERN_DOT);
         if (parts.length > 1) {
             name = parts[0];
@@ -73,14 +77,17 @@ export function extractHead(row: string): PoemHead | null {
         name = '';
         title = info || '无题';
     }
+
+    const rhymes = match.groups.rhymes;
     return {
         kind: kind,
         name: name,
         title: title,
+        rhymes: rhymes,
     };
 }
 
-export function isCodeBlockBoundary(row: string, isStart: boolean | undefined = undefined) {
+export function isCodeBlockBoundary(row: string, isStart?: boolean) {
     row = row.trim();
     // undefined means start or end
     if (isStart == undefined) {

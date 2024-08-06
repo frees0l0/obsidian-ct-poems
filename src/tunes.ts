@@ -45,7 +45,7 @@ export function matchTunes(head: PoemHead, composedSents: Sentence[], composedPa
   }
 
   const matches = tunes.map(tune => {
-    const result = matchSentences(tune.sentencePatterns, composedSents, tune.kind);
+    const result = matchSentences(tune.sentencePatterns, composedSents, head);
     const score = computeScore(result.sentences);
     // Overwrite tune's props with matched result
     const tuneMatch: TuneMatch = Object.assign({}, tune, {
@@ -65,13 +65,14 @@ export function matchTunes(head: PoemHead, composedSents: Sentence[], composedPa
 /**
  * Return the modified copies of all the patterns and only the matched sentences.
  */
-function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence[], kind: PoemKind): SentencesMatch {
+function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence[], head: PoemHead): SentencesMatch {
+  const { kind, rhymes } = head;
   const hasVariants = kind == PoemKind.S4 || kind == PoemKind.S8;
   const resultPatterns = hasVariants ? [...sentPatterns] : sentPatterns;
   const resultSents: Sentence[] = [];
   const looseRhymeMatch = kind == PoemKind.CI;
 
-  const rhymes = getRhymes();
+  const rhymesDict = getRhymes(rhymes);
   const rhymeGroups: string[] = [];
   let successiveTones = null;
   for (let i = 0; i < resultPatterns.length; i++) {
@@ -100,17 +101,17 @@ function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence
     // Match rhyme only for complete sentence
     let curRhymeGroup;
     if (composedSent.tones.length == sentPattern.tones.length) {
-      const rhymeGroup = sentPattern.rhymeType != RhymeType.NONE ? rhymes.getRhymeGroup(composedSent.rhyme, composedSent.words.at(-1)) : '';
+      const rhymeGroup = sentPattern.rhymeType != RhymeType.NONE ? rhymesDict.getRhymeGroup(composedSent.rhyme, composedSent.words.at(-1) ?? '') : '';
       if (sentPattern.rhymeType == RhymeType.NEW || (sentPattern.rhymeType == RhymeType.REQUIRED && rhymeGroups.length == 0)) {
         rhymeGroups.push(rhymeGroup);
         composedSent.rhymed = true;
       }
       else if (sentPattern.rhymeType == RhymeType.REQUIRED && (curRhymeGroup = rhymeGroups.at(-1))) {
-        composedSent.rhymed = rhymes.matchRhymeGroup(curRhymeGroup, rhymeGroup, looseRhymeMatch);
+        composedSent.rhymed = rhymesDict.matchRhymeGroup(curRhymeGroup, rhymeGroup, looseRhymeMatch);
       }
       else if (sentPattern.rhymeType == RhymeType.RESUME && (curRhymeGroup = rhymeGroups.at(-2))) {
         rhymeGroups.push(curRhymeGroup);
-        composedSent.rhymed = rhymes.matchRhymeGroup(curRhymeGroup, rhymeGroup, looseRhymeMatch);
+        composedSent.rhymed = rhymesDict.matchRhymeGroup(curRhymeGroup, rhymeGroup, looseRhymeMatch);
       }
     }
 
@@ -163,7 +164,7 @@ function computeScore(sents: Sentence[]): number {
   }, 0);
 }
 
-function buildTune(kind: PoemKind, name: string, tones: string, desc: string | undefined = undefined): Tune {
+function buildTune(kind: PoemKind, name: string, tones: string, desc?: string): Tune {
   const sections = splitSections(tones);
   const sentsOfSections = sections.map(line => extractSentencePatterns(line));
   const sents = sentsOfSections.flat();

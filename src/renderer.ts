@@ -94,7 +94,7 @@ function renderSentenceGroup(el: HTMLElement, sents: SentencePattern[], composed
     }
 }
 
-function renderSentenceTones(el: HTMLElement, sent: SentencePattern, composedSent: Sentence | undefined) {
+function renderSentenceTones(el: HTMLElement, sent: SentencePattern, composedSent?: Sentence) {
     // console.info('renderSentenceTones', sent.tones, composedSent?.tones);
     const tones = sent.tones;
     const composedTones = composedSent?.tones ?? '';
