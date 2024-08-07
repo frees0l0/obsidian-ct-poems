@@ -5,9 +5,11 @@ import { RhymeGroupData, RhymeGroupKey, Tone } from "types";
 export const RHYME_GROUP_UNKNOWN = '-';
 
 abstract class Rhymes {
+    name: string;
     looseRhymeGroups;
     
-    constructor(looseRhymeGroups: [string, string[]][], errorOnAbsent: boolean) {
+    constructor(name: string, looseRhymeGroups: [string, string[]][], errorOnAbsent: boolean) {
+        this.name = name;
         this.looseRhymeGroups = new LooseRhymeGroups(looseRhymeGroups, errorOnAbsent);
     }
 
@@ -59,8 +61,8 @@ abstract class PinyinRhymes extends Rhymes {
     // Pinyin -> rhyme group
     private rhymeGroupIndex = new Map<string, string>();
 
-    constructor(rhymeGroups: [string, string[]][], looseRhymeMatches: [string, string[]][]) {
-        super(looseRhymeMatches, false);
+    constructor(name: string, rhymeGroups: [string, string[]][], looseRhymeMatches: [string, string[]][]) {
+        super(name, looseRhymeMatches, false);
         this.buildRhymeGroupIndex(rhymeGroups);
     }
 
@@ -94,6 +96,7 @@ abstract class PinyinRhymes extends Rhymes {
 class ChineseNewRhymes extends PinyinRhymes {
     constructor() {
         super(
+            '新韵',
             [
                 ["一麻", ["a", "ia", "ua"]],
                 ["二波", ["o", "e", "uo"]],
@@ -123,6 +126,7 @@ class ChineseNewRhymes extends PinyinRhymes {
 class ChineseStandardRhymes extends PinyinRhymes {
     constructor() {
         super(
+            '通韵',
             [
                 ["一啊", ["a", "ia", "ua"]],
                 ["二喔", ["o", "uo"]],
@@ -158,7 +162,7 @@ class PSRhymes extends Rhymes {
     private defaultRhymeGroups: LooseRhymeGroups;
 
     constructor(rhymes: RhymeGroupData[], ciRhymeGroups: [string, string[]][]) {
-        super(ciRhymeGroups, true);
+        super('平水韵', ciRhymeGroups, true);
         this.buildRhymeGroupIndex(rhymes);
     }
 

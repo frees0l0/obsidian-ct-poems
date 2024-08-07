@@ -1,4 +1,5 @@
 import { extractPoem } from "poemUtil";
+import { getRhymes } from "rhymes";
 import { needRhyme } from "tones";
 import { matchTunes } from "tunes";
 import { TuneMatch, PoemKind, SentencePattern, Sentence, RhymeType, ToneMatch, PoemHead } from "types";
@@ -59,10 +60,11 @@ export function renderTuneSuggestion(tune: TuneMatch, el: HTMLElement, showDesc:
 /* Common rendering functions */
 
 function renderPoemHead(head: PoemHead, displayKind: string, poemEl: HTMLElement) {
-    const { kind, name, title } = head;
+    const { kind, name, title, rhymes } = head;
+    const rhymesTip = getRhymes(rhymes).name;
     const nameAndTitle = [name, title].filter(s => s).join('·');
     const headEl = poemEl.createDiv({ cls: "poem-head" });
-    headEl.createSpan({ text: nameAndTitle, cls: "poem-title" });
+    headEl.createSpan({ text: nameAndTitle, cls: "poem-title", title: rhymesTip });
     headEl.createSpan({ text: displayKind || kind, cls: "poem-kind", title: '点击显示或隐藏格律' }, el => {
         el.addEventListener('click', (ev) => {
             const elsOfTones = poemEl.getElementsByClassName('poem-tones');
