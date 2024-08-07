@@ -51,6 +51,12 @@ export enum RhymeType {
   NONE = '',
 }
 
+export enum RhymeDictType {
+  STANDARD = '通韵',
+  NEW = '新韵',
+  PINGSHUI = '平水韵',
+}
+
 export type RhymeGroupKey = {
   /**
    * 韵部名称

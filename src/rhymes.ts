@@ -1,14 +1,14 @@
 import { CI_RHYME_GROUPS } from "data/ciRhymes";
 import { PINGSHUI_RHYMES } from "data/psRhymes";
-import { RhymeGroupData, RhymeGroupKey, Tone } from "types";
+import { RhymeGroupData, RhymeGroupKey, RhymeDictType, Tone } from "types";
 
 export const RHYME_GROUP_UNKNOWN = '-';
 
 abstract class Rhymes {
-    name: string;
+    name: RhymeDictType;
     looseRhymeGroups;
     
-    constructor(name: string, looseRhymeGroups: [string, string[]][], errorOnAbsent: boolean) {
+    constructor(name: RhymeDictType, looseRhymeGroups: [string, string[]][], errorOnAbsent: boolean) {
         this.name = name;
         this.looseRhymeGroups = new LooseRhymeGroups(looseRhymeGroups, errorOnAbsent);
     }
@@ -17,7 +17,7 @@ abstract class Rhymes {
         const toneNum = finalAndToneNum.at(-1);
         return toneNum == '0' || toneNum == '1' || toneNum == '2' ? Tone.PING : (toneNum == '3' || toneNum == '4' || toneNum == '5' ? Tone.ZE : Tone.UNKNOWN);
     }
-    
+
     abstract getRhymeGroup(finalAndToneNum: string, word: string, looseMatch: boolean): string;
 
     abstract getTone(finalAndToneNum: string, word: string): Tone;
@@ -61,7 +61,7 @@ abstract class PinyinRhymes extends Rhymes {
     // Pinyin -> rhyme group
     private rhymeGroupIndex = new Map<string, string>();
 
-    constructor(name: string, rhymeGroups: [string, string[]][], looseRhymeMatches: [string, string[]][]) {
+    constructor(name: RhymeDictType, rhymeGroups: [string, string[]][], looseRhymeMatches: [string, string[]][]) {
         super(name, looseRhymeMatches, false);
         this.buildRhymeGroupIndex(rhymeGroups);
     }
@@ -96,7 +96,7 @@ abstract class PinyinRhymes extends Rhymes {
 class ChineseNewRhymes extends PinyinRhymes {
     constructor() {
         super(
-            '新韵',
+            RhymeDictType.NEW,
             [
                 ["一麻", ["a", "ia", "ua"]],
                 ["二波", ["o", "e", "uo"]],
@@ -126,7 +126,7 @@ class ChineseNewRhymes extends PinyinRhymes {
 class ChineseStandardRhymes extends PinyinRhymes {
     constructor() {
         super(
-            '通韵',
+            RhymeDictType.STANDARD,
             [
                 ["一啊", ["a", "ia", "ua"]],
                 ["二喔", ["o", "uo"]],
@@ -162,7 +162,7 @@ class PSRhymes extends Rhymes {
     private defaultRhymeGroups: LooseRhymeGroups;
 
     constructor(rhymes: RhymeGroupData[], ciRhymeGroups: [string, string[]][]) {
-        super('平水韵', ciRhymeGroups, true);
+        super(RhymeDictType.PINGSHUI, ciRhymeGroups, true);
         this.buildRhymeGroupIndex(rhymes);
     }
 
@@ -257,11 +257,11 @@ export function getRhymes(type?: string): Rhymes {
 
 function _getRhymes(type: string): Rhymes {
     switch(type) {
-        case '新韵':
-            return NEW_RHYMES;
-        case '通韵':
+        case RhymeDictType.STANDARD:
             return STD_RHYMES;
-        case '平水韵':
+        case RhymeDictType.NEW:
+            return NEW_RHYMES;
+        case RhymeDictType.PINGSHUI:
             return PS_RHYMES;
         default:
             return STD_RHYMES;

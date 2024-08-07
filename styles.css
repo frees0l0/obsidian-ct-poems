@@ -21,7 +21,7 @@
 }
 
 .poem-kind {
-    /* font-size: 87.5%; */
+    flex-shrink: 0;
     color: #999;
 }
 
