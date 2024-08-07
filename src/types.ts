@@ -62,7 +62,7 @@ export type RhymeGroupKey = {
   tone: string;
 }
 
-export type RhymeGroup = {
+export type RhymeGroupData = {
   /**
    * 韵部包含的所有汉字
    */

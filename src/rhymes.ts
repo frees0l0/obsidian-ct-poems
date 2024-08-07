@@ -1,12 +1,12 @@
 import { PINGSHUI_RHYMES } from "data/psRhymes";
-import { RhymeGroup, RhymeGroupKey, Tone } from "types";
+import { RhymeGroupData, RhymeGroupKey, Tone } from "types";
 
 export const RHYME_GROUP_UNKNOWN = '-';
 
 abstract class Rhymes {
     looseRhymeMatcher;
     
-    constructor(looseRhymeMatches: string[][]) {
+    constructor(looseRhymeMatches: [string, string[]][]) {
         this.looseRhymeMatcher = new LooseRhymesMatcher(looseRhymeMatches);
     }
 
@@ -29,12 +29,14 @@ abstract class Rhymes {
 }
 
 class LooseRhymesMatcher {
-    // Rhyme group name -> category no.
-    private categoryIndex = new Map<string, string>();
+    // Rhyme group name -> loose group name
+    private groupIndex = new Map<string, string>();
 
-    constructor(matches: string[][]) {
-        for (let i = 0; i < matches.length; i++) {
-            matches[i].forEach(name => this.categoryIndex.set(name, `第${i+1}部`));
+    constructor(matches: [string, string[]][]) {
+        for (const [lg, gs] of matches) {
+            for (const g of gs) {
+                this.groupIndex.set(g, lg);
+            }
         }
     }
 
@@ -42,24 +44,15 @@ class LooseRhymesMatcher {
      * Return the loose rhyme group or undefined if not present.
      */
     getLooseRhymeGroup(rhymeGroup: string): string | undefined {
-        return this.categoryIndex.get(rhymeGroup);
+        return this.groupIndex.get(rhymeGroup);
     }
-
-    /**
-     * Match two strict rhyme groups regarding their loose groups.
-     */
-    // matchRhymeGroup(r1: string, r2: string): boolean {
-    //     const c1 = this.categoryIndex.get(r1);
-    //     const c2 = this.categoryIndex.get(r2);
-    //     return c1 && c2 ? c1 == c2 : false;
-    // }
 }
 
 abstract class PinyinRhymes extends Rhymes {
     // Pinyin -> rhyme group
     private rhymeGroupIndex = new Map<string, string>();
 
-    constructor(rhymeGroups: [string, string[]][], looseRhymeMatches: string[][]) {
+    constructor(rhymeGroups: [string, string[]][], looseRhymeMatches: [string, string[]][]) {
         super(looseRhymeMatches);
         this.buildRhymeGroupIndex(rhymeGroups);
     }
@@ -111,7 +104,7 @@ class ChineseNewRhymes extends PinyinRhymes {
                 ["十四姑", ["u"]],
             ],
             [
-                ["四开", "五微", "十二齐", "十三支"],
+                ["第一部", ["四开", "五微", "十二齐", "十三支"]],
             ]
         );
     }
@@ -142,9 +135,9 @@ class ChineseStandardRhymes extends PinyinRhymes {
                 ["十六儿", ["er"]],
             ],
             [
-                ["四衣", "七哀", "八诶"],
-                ["五乌", "六迂"],
-                ["十四英", "十五雍"],
+                ["第一部", ["四衣", "七哀", "八诶"]],
+                ["第二部", ["五乌", "六迂"]],
+                ["第三部", ["十四英", "十五雍"]],
             ]
         );
     }
@@ -154,14 +147,14 @@ class ChineseStandardRhymes extends PinyinRhymes {
  * Pingshui & Cilin rhymes.
  */
 class PSRhymes extends Rhymes {
-    private static CI_RHYME_MATCHES = [
-        []
+    private static CI_RHYME_MATCHES: [string, string[]][] = [
+        
     ];
 
     private rhymeGroupIndex = new Map<string, RhymeGroupKey[]>();
     private defaultRhymeMatcher: LooseRhymesMatcher;
 
-    constructor(rhymes: RhymeGroup[]) {
+    constructor(rhymes: RhymeGroupData[]) {
         super(PSRhymes.CI_RHYME_MATCHES);
         this.buildRhymeGroupIndex(rhymes);
     }
@@ -204,19 +197,19 @@ class PSRhymes extends Rhymes {
         return tone == '平声' ? Tone.PING : Tone.ZE;
     }
 
-    buildRhymeGroupIndex(rhymes: RhymeGroup[]) {
-        const defaultRhymeMatches = [];
+    buildRhymeGroupIndex(rhymes: RhymeGroupData[]) {
+        const defaultRhymeMatches: [string, string[]][] = [];
         for (const rhyme of rhymes) {
             const { name, tone, words } = rhyme;
             const wordsList = words.split('|');
             // Handle rhyme group with two halves
             if (wordsList.length > 1) {
-                const names = [name+'-上', name+'-下'];
+                const names = [name+'上', name+'下'];
                 for (let i = 0; i < names.length; i++) {
                     this.indexWords(names[i], tone, wordsList[i]);
                 }
                 // Two halves match each other in pingshui, but not in cilin
-                defaultRhymeMatches.push(names);
+                defaultRhymeMatches.push([name, names]);
             }
             else {
                 this.indexWords(name, tone, wordsList[0]);
