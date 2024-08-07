@@ -1,13 +1,14 @@
+import { CI_RHYME_GROUPS } from "data/ciRhymes";
 import { PINGSHUI_RHYMES } from "data/psRhymes";
 import { RhymeGroupData, RhymeGroupKey, Tone } from "types";
 
 export const RHYME_GROUP_UNKNOWN = '-';
 
 abstract class Rhymes {
-    looseRhymeMatcher;
+    looseRhymeGroups;
     
-    constructor(looseRhymeMatches: [string, string[]][]) {
-        this.looseRhymeMatcher = new LooseRhymesMatcher(looseRhymeMatches);
+    constructor(looseRhymeGroups: [string, string[]][], errorOnAbsent: boolean) {
+        this.looseRhymeGroups = new LooseRhymeGroups(looseRhymeGroups, errorOnAbsent);
     }
 
     static toneOfPinyin(finalAndToneNum: string) {
@@ -20,7 +21,7 @@ abstract class Rhymes {
     abstract getTone(finalAndToneNum: string, word: string): Tone;
 
     getLooseRhymeGroup(rhymeGroup: string): string | undefined {
-        return this.looseRhymeMatcher.getLooseRhymeGroup(rhymeGroup);
+        return this.looseRhymeGroups.getLooseRhymeGroup(rhymeGroup);
     }
 
     matchRhymeGroup(r1: string, r2: string): boolean {
@@ -28,23 +29,29 @@ abstract class Rhymes {
     }
 }
 
-class LooseRhymesMatcher {
+class LooseRhymeGroups {
     // Rhyme group name -> loose group name
     private groupIndex = new Map<string, string>();
+    private errorOnAbsent;
 
-    constructor(matches: [string, string[]][]) {
+    constructor(matches: [string, string[]][], errorOnAbsent: boolean) {
         for (const [lg, gs] of matches) {
             for (const g of gs) {
                 this.groupIndex.set(g, lg);
             }
         }
+        this.errorOnAbsent = errorOnAbsent;
     }
 
     /**
      * Return the loose rhyme group or undefined if not present.
      */
     getLooseRhymeGroup(rhymeGroup: string): string | undefined {
-        return this.groupIndex.get(rhymeGroup);
+        const group = this.groupIndex.get(rhymeGroup);
+        if (!group && this.errorOnAbsent) {
+            console.error('Loose rhyme group not found', rhymeGroup);
+        }
+        return group;
     }
 }
 
@@ -53,7 +60,7 @@ abstract class PinyinRhymes extends Rhymes {
     private rhymeGroupIndex = new Map<string, string>();
 
     constructor(rhymeGroups: [string, string[]][], looseRhymeMatches: [string, string[]][]) {
-        super(looseRhymeMatches);
+        super(looseRhymeMatches, false);
         this.buildRhymeGroupIndex(rhymeGroups);
     }
 
@@ -147,24 +154,19 @@ class ChineseStandardRhymes extends PinyinRhymes {
  * Pingshui & Cilin rhymes.
  */
 class PSRhymes extends Rhymes {
-    private static CI_RHYME_MATCHES: [string, string[]][] = [
-        
-    ];
-
     private rhymeGroupIndex = new Map<string, RhymeGroupKey[]>();
-    private defaultRhymeMatcher: LooseRhymesMatcher;
+    private defaultRhymeGroups: LooseRhymeGroups;
 
-    constructor(rhymes: RhymeGroupData[]) {
-        super(PSRhymes.CI_RHYME_MATCHES);
+    constructor(rhymes: RhymeGroupData[], ciRhymeGroups: [string, string[]][]) {
+        super(ciRhymeGroups, true);
         this.buildRhymeGroupIndex(rhymes);
     }
 
     getRhymeGroup(finalAndToneNum: string, word: string, looseMatch: boolean): string {
-        const matcher = looseMatch ? this.looseRhymeMatcher : this.defaultRhymeMatcher;
+        const matcher = looseMatch ? this.looseRhymeGroups : this.defaultRhymeGroups;
         const groups = this.rhymeGroupIndex.get(word);
         // Return multiple group names as a workaround for now
         if (groups) {
-            // Loose group should NOT be null here
             return groups.map(k => matcher.getLooseRhymeGroup(k.name) ?? k.name).join('|');
         }
         return RHYME_GROUP_UNKNOWN;
@@ -204,7 +206,7 @@ class PSRhymes extends Rhymes {
             const wordsList = words.split('|');
             // Handle rhyme group with two halves
             if (wordsList.length > 1) {
-                const names = [name+'上', name+'下'];
+                const names = [name+'(上)', name+'(下)'];
                 for (let i = 0; i < names.length; i++) {
                     this.indexWords(names[i], tone, wordsList[i]);
                 }
@@ -215,7 +217,7 @@ class PSRhymes extends Rhymes {
                 this.indexWords(name, tone, wordsList[0]);
             }
         }
-        this.defaultRhymeMatcher = new LooseRhymesMatcher(defaultRhymeMatches);
+        this.defaultRhymeGroups = new LooseRhymeGroups(defaultRhymeMatches, false);
     }
 
     indexWords(name: string, tone: string, words: string) {
@@ -235,7 +237,7 @@ class PSRhymes extends Rhymes {
 // Globals
 const NEW_RHYMES = new ChineseNewRhymes()
 const STD_RHYMES = new ChineseStandardRhymes();
-const PS_RHYMES = new PSRhymes(PINGSHUI_RHYMES);
+const PS_RHYMES = new PSRhymes(PINGSHUI_RHYMES, CI_RHYME_GROUPS);
 let current_rhymes: Rhymes = STD_RHYMES;
 
 export function switchRhymes(type: string) {
