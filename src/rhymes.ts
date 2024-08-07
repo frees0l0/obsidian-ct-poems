@@ -174,9 +174,12 @@ class PSRhymes extends Rhymes {
 
     getTone(finalAndToneNum: string, word: string): Tone {
         const groups = this.rhymeGroupIndex.get(word);
-        // Use pingshui if not a polyphone, otherwise fall back to pinyin 
-        if (groups && groups.length == 1) {
-            return this.normalizedTone(groups[0].tone);
+        // Use pingshui if no conflicts, otherwise fall back to pinyin 
+        if (groups && groups.length > 0) {
+            const tones = groups.map(g => this.normalizedTone(g.tone));
+            if (tones.every((t, i, arr) => t == arr[0])) {
+                return tones[0];
+            }
         }
         return Rhymes.toneOfPinyin(finalAndToneNum);
     }
