@@ -70,7 +70,6 @@ function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence
   const hasVariants = kind == PoemKind.S4 || kind == PoemKind.S8;
   const resultPatterns = hasVariants ? [...sentPatterns] : sentPatterns;
   const resultSents: Sentence[] = [];
-  const looseRhymeMatch = kind == PoemKind.CI;
 
   const rhymesDict = getRhymes(rhymes);
   const rhymeGroups: string[] = [];
@@ -101,17 +100,17 @@ function matchSentences(sentPatterns: SentencePattern[], composedSents: Sentence
     // Match rhyme only for complete sentence
     let curRhymeGroup;
     if (composedSent.tones.length == sentPattern.tones.length) {
-      const rhymeGroup = sentPattern.rhymeType != RhymeType.NONE ? rhymesDict.getRhymeGroup(composedSent.rhyme, composedSent.words.at(-1) ?? '') : '';
+      const rhymeGroup = sentPattern.rhymeType != RhymeType.NONE ? rhymesDict.getRhymeGroup(composedSent.rhyme, composedSent.words.at(-1) ?? '', !hasVariants) : '';
       if (sentPattern.rhymeType == RhymeType.NEW || (sentPattern.rhymeType == RhymeType.REQUIRED && rhymeGroups.length == 0)) {
         rhymeGroups.push(rhymeGroup);
         composedSent.rhymed = true;
       }
       else if (sentPattern.rhymeType == RhymeType.REQUIRED && (curRhymeGroup = rhymeGroups.at(-1))) {
-        composedSent.rhymed = rhymesDict.matchRhymeGroup(curRhymeGroup, rhymeGroup, looseRhymeMatch);
+        composedSent.rhymed = rhymesDict.matchRhymeGroup(curRhymeGroup, rhymeGroup);
       }
       else if (sentPattern.rhymeType == RhymeType.RESUME && (curRhymeGroup = rhymeGroups.at(-2))) {
         rhymeGroups.push(curRhymeGroup);
-        composedSent.rhymed = rhymesDict.matchRhymeGroup(curRhymeGroup, rhymeGroup, looseRhymeMatch);
+        composedSent.rhymed = rhymesDict.matchRhymeGroup(curRhymeGroup, rhymeGroup);
       }
     }
 
