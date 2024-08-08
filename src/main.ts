@@ -1,11 +1,12 @@
-import { Plugin } from 'obsidian';
+import { Editor, MarkdownView, Menu, MenuItem, Plugin, TFile } from 'obsidian';
 import { PluginSettings, DEFAULT_SETTINGS, POEM_CODE_TAG, POEMS_FRONT_MATTER, PoemKind, TuneData } from 'types';
 import { PoemsSettingTab } from 'PoemsSettingTab';
 import { TuneSearchModal } from 'TuneSearchModal';
+import { RhymeSearchModal } from 'RhymeSearchModal'
 import { insertPoemInEditor } from 'poemUtil';
 import { PoemCompositionHint } from 'PoemCompositionHint';
-import { verifyOrAddFrontMatter } from 'utils';
-import { getTunes, loadTunes, loadVariants } from 'tunes';
+import { isChinese, isMobile, verifyOrAddFrontMatter } from 'utils';
+import { loadTunes, loadVariants } from 'tunes';
 import { switchRhymes } from 'rhymes';
 import { S4_PATTERNS, S8_PATTERNS, VARIANTS_PATTERNS } from 'data/poemPatterns';
 import { CI_PATTERNS } from 'data/ciPatterns';
@@ -29,10 +30,7 @@ export default class CTPoemsPlugin extends Plugin {
         if (view.file) {
           verifyOrAddFrontMatter(this.app, view.file, POEMS_FRONT_MATTER, '');
         }
-        const tune = getTunes(PoemKind.S4)[0];
-        if (tune) {
-          insertPoemInEditor({ kind: tune.kind, name: tune.name, title: '' }, editor);
-        }
+        insertPoemInEditor({ kind: PoemKind.S4, name: '', title: '' }, editor);
       }
     });
 
@@ -43,10 +41,7 @@ export default class CTPoemsPlugin extends Plugin {
         if (view.file) {
           verifyOrAddFrontMatter(this.app, view.file, POEMS_FRONT_MATTER, '');
         }
-        const tune = getTunes(PoemKind.S8)[0];
-        if (tune) {
-          insertPoemInEditor({ kind: tune.kind, name: tune.name, title: '' }, editor);
-        }
+        insertPoemInEditor({ kind: PoemKind.S8, name: '', title: '' }, editor);
       }
     });
     
@@ -71,6 +66,22 @@ export default class CTPoemsPlugin extends Plugin {
 
     // This adds a settings tab so the user can configure various aspects of the plugin
     this.addSettingTab(new PoemsSettingTab(this.app, this));
+
+    // Menu items
+    this.app.workspace.on('editor-menu', (menu, editor, view) => {
+      const file = view.file;
+      if (file) {
+        this.addRhymeSearchItem(menu, editor, view.file);
+      }
+    });
+    if (isMobile(this.app)) {
+      this.app.workspace.on('file-menu', (menu, file, source, leaf) => {
+        const editor = leaf && leaf.view instanceof MarkdownView ? leaf.view.editor : null;
+        if (file instanceof TFile && editor) {
+          this.addRhymeSearchItem(menu, editor, file);
+        }
+      });
+    }
   }
 
   onunload() {
@@ -87,6 +98,20 @@ export default class CTPoemsPlugin extends Plugin {
 
   onExternalSettingsChange() {
     this.loadSettings();
+  }
+
+  addRhymeSearchItem(menu: Menu, editor: Editor, file: TFile) {
+    const sel = editor.getSelection();
+    if (sel.length == 1 && isChinese(sel)) {
+      menu.addItem((item: MenuItem) => {
+          item.setTitle('查询韵部');
+          item.setIcon('search');
+          item.setSection('poems');
+          item.onClick((e) => {
+            new RhymeSearchModal(this.app, sel).open();
+          });
+      });
+    }
   }
 
   async loadExtraData() {

@@ -61,9 +61,10 @@ export function renderTuneSuggestion(tune: TuneMatch, el: HTMLElement, showDesc:
 
 function renderPoemHead(head: PoemHead, displayKind: string, poemEl: HTMLElement) {
     const { kind, name, title, rhymes } = head;
-    const rhymeDict = getRhymes(rhymes).name;
+    const rhymeDictType = getRhymes(rhymes).name;
+    const rhymeDictName = rhymeDictType.replace('中华', '');
     const nameAndTitle = [name, title].filter(s => s).join('·');
-    const fullTitle = rhymeDict != RhymeDictType.PINGSHUI ? `${nameAndTitle}(${rhymeDict})` : nameAndTitle;
+    const fullTitle = rhymeDictType != RhymeDictType.PINGSHUI ? `${nameAndTitle}(${rhymeDictName})` : nameAndTitle;
     const headEl = poemEl.createDiv({ cls: "poem-head" });
     headEl.createSpan({ text: fullTitle, cls: "poem-title" });
     headEl.createSpan({ text: displayKind || kind, cls: "poem-kind", title: '点击显示或隐藏格律' }, el => {

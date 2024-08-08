@@ -52,8 +52,8 @@ export enum RhymeType {
 }
 
 export enum RhymeDictType {
-  STANDARD = '通韵',
-  NEW = '新韵',
+  STANDARD = '中华通韵',
+  NEW = '中华新韵',
   PINGSHUI = '平水韵',
 }
 

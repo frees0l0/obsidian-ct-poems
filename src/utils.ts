@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { App, TFile } from "obsidian";
 
+export function isMobile(app: App): boolean {
+    return (app as any)?.isMobile;
+}
+
 export async function verifyOrAddFrontMatter(
     app: App,
     file: TFile,
@@ -35,4 +39,9 @@ export function argmax<T>(arr: T[], fn: (o: T) => number): number {
         }
     }
     return maxIndex;
+}
+
+export function isChinese(char: string) {
+    // Check if the character falls within the basic Chinese or extended Chinese ranges
+    return (/[\u4E00-\u9FFF\u3400-\u4DBF]/).test(char);
 }

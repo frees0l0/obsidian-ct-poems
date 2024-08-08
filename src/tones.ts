@@ -3,6 +3,10 @@ import { PATTERN_WORD_WITH_PINYIN, PATTERN_ENDING_PUNC } from "regexps";
 import { getRhymes } from "rhymes";
 import { PatternType, PoemHead, PoemKind, RhymeType, Sentence, SentencePattern, Tone, ToneMatch } from "types";
 
+export function getFinals(words: string, multiple = false): string[] {
+    return pinyin(words, { type: 'array', pattern: 'final', toneType: 'num', v: true, nonZh: 'consecutive', segmentit: 1, multiple: multiple });
+}
+
 export function makeSentences(sentences: string[], head: PoemHead): Sentence[] {
     const rhymes = getRhymes(head.rhymes);
     return sentences.map(s => {
@@ -21,7 +25,7 @@ export function makeSentences(sentences: string[], head: PoemHead): Sentence[] {
         });
         // Get pinyin finals and overwrite the annotated ones
         const words = annotatedWords.map(w => w.word).join('');
-        const finals = pinyin(words, { type: 'array', pattern: 'final', toneType: 'num', v: true, nonZh: 'consecutive', segmentit: 1 });
+        const finals = getFinals(words);
         annotatedWords.forEach((w, i) => {
             if (w.pinyin) {
                 finals[i] = w.pinyin;
