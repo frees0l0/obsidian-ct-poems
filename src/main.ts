@@ -1,5 +1,5 @@
 import { Editor, MarkdownView, Menu, MenuItem, Plugin, TFile } from 'obsidian';
-import { PluginSettings, DEFAULT_SETTINGS, POEM_CODE_TAG, POEMS_FRONT_MATTER, PoemKind, TuneData } from 'types';
+import { PluginSettings, DEFAULT_SETTINGS, POEM_CODE_TAG, PoemKind, TuneData, POEMS_FRONT_MATTER } from 'types';
 import { PoemsSettingTab } from 'PoemsSettingTab';
 import { TuneSearchModal } from 'TuneSearchModal';
 import { RhymeSearchModal } from 'RhymeSearchModal'
@@ -22,14 +22,22 @@ export default class CTPoemsPlugin extends Plugin {
     // Initialize with settings
     switchRhymes(this.settings.rhymesType);
     
+    // Add command for inserting poems front matter
+    this.addCommand({
+      id: 'add-poems-frontmatter',
+      name: 'Add poems frontmatter (添加诗词标识)',
+      editorCallback: (editor, view) => {
+        if (view.file) {
+          verifyOrAddFrontMatter(this.app, view.file, POEMS_FRONT_MATTER, '', true);
+        }
+      }
+    });
+
     // Add command for inserting a new poems
     this.addCommand({
       id: 'add-four-line-poem',
       name: 'Create four-line poem (创作绝句)',
       editorCallback: (editor, view) => {
-        if (view.file) {
-          verifyOrAddFrontMatter(this.app, view.file, POEMS_FRONT_MATTER, '');
-        }
         insertPoemInEditor({ kind: PoemKind.S4, name: '', title: '' }, editor);
       }
     });
@@ -38,9 +46,6 @@ export default class CTPoemsPlugin extends Plugin {
       id: 'add-eight-line-poem',
       name: 'Create eight-line poem (创作律诗)',
       editorCallback: (editor, view) => {
-        if (view.file) {
-          verifyOrAddFrontMatter(this.app, view.file, POEMS_FRONT_MATTER, '');
-        }
         insertPoemInEditor({ kind: PoemKind.S8, name: '', title: '' }, editor);
       }
     });
@@ -49,9 +54,6 @@ export default class CTPoemsPlugin extends Plugin {
       id: 'add-ci-poem',
       name: 'Create ci poem (填写词牌)',
       editorCallback: (editor, view) => {
-        if (view.file) {
-          verifyOrAddFrontMatter(this.app, view.file, POEMS_FRONT_MATTER, '');
-        }
         new TuneSearchModal(this.app, editor).open();
       }
     });

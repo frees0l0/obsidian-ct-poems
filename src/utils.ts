@@ -12,16 +12,16 @@ export async function verifyOrAddFrontMatter(
     fieldValue: string,
     skipIfExists = true
 ): Promise<boolean> {
-    let locationAdded = false;
+    let added = false;
     await app.fileManager.processFrontMatter(file, (frontmatter: any) => {
         if (fieldName in frontmatter && skipIfExists) {
-            locationAdded = false;
+            added = false;
             return;
         }
         frontmatter[fieldName] = fieldValue;
-        locationAdded = true;
+        added = true;
     });
-    return locationAdded;
+    return added;
 }
 
 export function argmax<T>(arr: T[], fn: (o: T) => number): number {
