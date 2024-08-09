@@ -5,7 +5,7 @@ export interface PluginSettings {
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
-  rhymesType: '通韵',
+  rhymesType: '平水韵',
   showDescInEditing: true,
 };
 

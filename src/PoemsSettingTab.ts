@@ -18,7 +18,7 @@ export class PoemsSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('诗词韵典')
-      .setDesc('诗词格律校验使用的韵典。选择平水韵时，词的韵典会使用词林正韵；选择中华通韵或新韵时，词的韵典会使用类似词林正韵的宽韵。')
+      .setDesc('诗词格律的默认韵典。选择平水韵时，词的韵典会使用词林正韵；选择中华通韵或新韵时，词的韵典会使用相应的宽韵。每首诗词可在题目后添加“（通韵/新韵/平水韵）”，从而指定自己的韵部，此时默认设置会被覆盖。')
       .addDropdown(component => component
         .addOption('通韵', '中华通韵')
         .addOption('新韵', '中华新韵')

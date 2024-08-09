@@ -24,7 +24,7 @@ export class TuneSearchModal extends FuzzySuggestModal<Tune> {
     const tune = match.item;
     const tip = tune.sentencePatterns.slice(0, 4).map(s => s.tones + s.punctuation).join('');
     el.createEl("div", { text: tune.name });
-    el.createEl("small", { text: tip + '......' });
+    el.createEl("small", { text: tip + '......', attr: { 'style': 'color: #999;' } });
   }
 
   onChooseItem(tune: Tune, evt: MouseEvent | KeyboardEvent) {
