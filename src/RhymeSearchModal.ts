@@ -14,13 +14,16 @@ export class RhymeSearchModal extends Modal {
   onOpen() {
     const groups = this.searchRhymeGroups();
     const { contentEl } = this;
-    contentEl.createDiv({
+    const el = contentEl.createDiv({
+      attr: { 'style': 'margin: 0px 15px 10px 15px;' },
+    });
+    el.createDiv({
       text: this.word,
       attr: { 'style': 'margin-bottom: 5px; font-size: 112.5%; font-weight: bold;' },
     });
     for (const group of groups) {
-      const row = contentEl.createDiv({
-        attr: { 'style': 'margin-top: 3px; display: flex; flex-direction: row;' },
+      const row = el.createDiv({
+        attr: { 'style': 'margin-top: 5px; display: flex; flex-direction: row;' },
       });
 
       row.createDiv({
